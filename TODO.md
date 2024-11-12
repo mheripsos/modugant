@@ -1,0 +1,18 @@
+- detach generator/discriminator/discriminator from training data (eval version)
+    - serialization of generator
+    - serialization of discriminator
+    - condition generator?
+- covariance mismatch penalty
+    - for a "folded discriminator", calculate covariance matrix, penalize distance from expected, backprop
+- parameterized loader
+    - for underlying data D, load D x W, backprop onto W.
+    - representation of categories not as one-hot, but rather as learned vectors
+- loader with positional encoding for ordinal variables
+    - represent both "continuous" and "categorical" nature of variable
+- evaluation:
+    -  [Goodfellow 2018]: We estimate probabilkity of the test data under *p<sub>g</sub>* by fitting a Gaussian Parzen window to the samples generated with *G* and reporting the log-0likelihood under this distribution. The *σ* parameter of the Gaussians was obtained by cross validation on the validation set. This procedure was introduced in Breuleux et. al. [7] and used for various generative models for which the exact likelihood is not tractable [23, 3, 4]. [...] This method of estimating the likelihood has somewhat high variance and does not perform well in high dimensional spaces but it is the best method available to our knowledge.
+    - [3] Bengio Y., Mesnil G. ... (2013) Better mixing via deep representation
+    - [4] Bengio Y., Thibodeau-Laufer E. ... (2014a) Deep generative stochastic networks trainable by backprop
+    - [7] Breuleux O., Bengio Y. ... (2011) Quickly generating representative samples from an RBM-derived process
+    - [23] Rezende D.J. Mohamed S., ... (2014) Stochastic backpropagation and approximate inference in deep generative models.
+- test on GPU/TPU (G Collab)

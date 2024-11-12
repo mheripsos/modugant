@@ -1,0 +1,71 @@
+[tool.poetry]
+name = "modugant"
+version = "0.1.0"
+description = "Modular GAN Trainer"
+authors = ["Mher Alaverdyan <mher.alaverdyan@ipsos.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+torch = "^2.5.0"
+
+[tool.poetry.group.dev.dependencies]
+pyright = "^1.1.386"
+ruff = "^0.7.1"
+
+
+[tool.poetry.group.demo.dependencies]
+ipykernel = "^6.29.5"
+pandas = "^2.2.3"
+seaborn = "^0.13.2"
+
+[tool.pyright]
+reportImportCycles = "warning"
+reportUnusedImport = "warning"
+reportUnusedClass = "warning"
+reportUnusedFunction = "warning"
+reportUnusedVariable = "warning"
+reportDuplicateImport = "warning"
+reportUntypedClassDecorator = "warning"
+reportUntypedFunctionDecorator = "warning"
+reportUntypedBaseClass = "warning"
+reportUntypedNamedTuple = "warning"
+reportPrivateUsage = "warning"
+reportUninitializedInstanceVariable = "error"
+reportUnknownParameterType = "warning"
+reportUnknownArgumentType = "warning"
+reportUnknownVariableType = "warning"
+reportUnknownLambdaType = "warning"
+reportMissingParameterType = "warning"
+reportMissingTypeArgument = "warning"
+reportMissingTypeStubs = "warning"
+reportMissingReturnType = "warning"
+reportCallInDefaultInitializer = "warning"
+reportUnnecessaryIsInstance = "information"
+reportUnnecessaryCast = "information"
+reportUnnecessaryComparison = "information"
+reportUnnecessaryContains = "information"
+reportUnusedCallResult = "warning"
+reportUnusedExpression = "warning"
+reportUnnecessaryTypeIgnoreComment = "information"
+reportImplicitOverride = "warning"
+reportShadowedImports = "warning"
+stubPaths = ["./typings"]
+
+[tool.ruff]
+line-length = 120
+indent-width = 2
+
+[tool.ruff.lint]
+select = ["E", "W", "I", "N", "D", "NPY", "DOC"]
+ignore = ["D100", "D212", "D300", "D400"]
+
+[tool.ruff.lint.per-file-ignores]
+"*.ipynb" = ["D"]
+
+[tool.ruff.format]
+quote-style = "single"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
