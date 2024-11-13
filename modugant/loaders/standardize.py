@@ -1,4 +1,4 @@
-from typing import List, override
+from typing import Any, List, override
 
 from torch import Tensor
 
@@ -34,3 +34,6 @@ class StandardizeLoader[D: int](Loader[D]):
     @override
     def load[N: int](self, data: Matrix[N, int]) -> Matrix[N, D]:
         return (data[..., self._index] - self._mean) / self._std
+    @override
+    def unload[N: int](self, data: Matrix[N, D]) -> Matrix[N, Any]:
+        return (data * self._std) + self._mean

@@ -1,8 +1,8 @@
-from typing import List, Tuple, override
+from typing import Any, List, Tuple, override
 
 from modugant.matrix import Matrix
 from modugant.matrix.index import Index
-from modugant.matrix.ops import cat, zeros
+from modugant.matrix.ops import cat
 from modugant.protocols import Loader
 
 
@@ -30,9 +30,11 @@ class DirectLoader[D: int](Loader[D]):
         ]
     @override
     def load[N: int](self, data: Matrix[N, int]) -> Matrix[N, D]:
-        loaded = zeros((data.shape[0], self._outputs))
         loaded = tuple(
             data[..., i_index]
             for i_index in self._index
         )
         return cat(loaded, dim = 1, shape = (data.shape[0], self._outputs))
+    @override
+    def unload[N: int](self, data: Matrix[N, D]) -> Matrix[N, Any]:
+        return data[..., ...]

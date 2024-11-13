@@ -338,6 +338,18 @@ class Loader[D: int](WithOutputs[D], Protocol):
 
         '''
         ...
+    def unload[N: int](self, data: Matrix[N, D]) -> Matrix[N, int]:
+        '''
+        Decode the data.
+
+        Args:
+            data (Tensor (N, D)): The data to decode.
+
+        Returns:
+            Tensor (N, X): The decoded data.
+
+        '''
+        ...
 
 class Transformer[C: int, G: int, D: int](
     Conditioner[C, D],

@@ -26,13 +26,20 @@ class CategoryLoader[D: int](Loader[D]):
         assert sum(sizes) == dim
         self._outputs = dim
         self._categories = [
-            (*index[i], sum(sizes[:i]), sum(sizes[:i + 1]))
+            (*index[i], sum(sizes[:i]))
             for i in range(len(sizes))
         ]
     @override
     def load[N: int](self, data: Matrix[N, int]) -> Matrix[N, D]:
         output = tuple(
             one_hot(data[..., Index.at(idx)].long(), size)
-            for (idx, size, _, _) in self._categories
+            for (idx, size, _) in self._categories
         )
         return cat(output, dim = 1, shape = (data.shape[0], self._outputs))
+    @override
+    def unload[N: int](self, data: Matrix[N, D]) -> Matrix[N, int]:
+        output = tuple(
+            data[..., Index.slice(idx, size)].argmax(dim = 1, keepdim = True)
+            for (_, size, idx) in self._categories
+        )
+        return cat(output, dim = 1, shape = (data.shape[0], len(self._categories)))

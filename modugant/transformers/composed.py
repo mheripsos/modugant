@@ -56,6 +56,9 @@ class ComposedTransformer[C: int, G: int, D: int](Transformer[C, G, D]):
     @override
     def load[N: int](self, data: Matrix[N, int]) -> Matrix[N, D]:
         return self._loader.load(data).to(self._device)
+    @override
+    def unload[N: int](self, data: Matrix[N, D]) -> Matrix[N, int]:
+        return self._loader.unload(data)
     def move(self, device: Device) -> Self:
         '''Move the transformer to the device.'''
         self._device = device

@@ -99,7 +99,11 @@ class FoldedDiscriminator[C: int, D: int](StandardDiscriminator[C, D], Reshaping
     @override
     def loss[N: int](self, condition: Matrix[N, C], data: Matrix[N, D], target: Matrix[N, One]) -> Matrix[One, One]:
         predicted = self.predict(condition, data)
-        loss = ((1 - target.t()) @ predicted - target.t() @ predicted) / len(target)
+        weight = target.sum(dim = 0, keepdim = True) / len(target)
+        loss = (
+            ((1 - weight) * (1 - target.t())) @ predicted -
+            (weight * target.t()) @ predicted
+        )
         return loss
     @override
     def restart(self) -> None:
