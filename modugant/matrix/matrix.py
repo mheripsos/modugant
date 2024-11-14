@@ -1,7 +1,7 @@
 from types import EllipsisType
 from typing import Any, List, Literal, Optional, Sequence, Tuple, Union, cast, overload, override
 
-from torch import Tensor
+from torch import Tensor, tensor
 
 from .dim import One
 from .index import Index
@@ -25,6 +25,10 @@ class Matrix[R: int, C: int](Tensor):
             shape = cast(Tuple[RS, CS], data.shape)
         assert data.shape == shape, f'Matrix {data} is not of shape {shape}'
         return cast(Matrix[RS, CS], data)
+    @staticmethod
+    def cell(value: float) -> 'Matrix[One, One]':
+        '''Create a cell matrix.'''
+        return cast(Matrix[One, One], tensor([[value]]))
     @override
     def __add__(self, other: 'Operand[R, C]') -> 'Matrix[R, C]':
         return Matrix.load(super().__add__(other), self.shape)
@@ -55,6 +59,12 @@ class Matrix[R: int, C: int](Tensor):
     @override
     def __rtruediv__(self, other: 'Operand[R, C]') -> 'Matrix[R, C]':
         return Matrix.load(super().__rtruediv__(other), self.shape)
+    @override
+    def __pow__(self, other: 'Operand[R, C]') -> 'Matrix[R, C]':
+        return Matrix.load(super().__pow__(other), self.shape)
+    @override
+    def __rpow__(self, other: 'Operand[R, C]') -> 'Matrix[R, C]':
+        return Matrix.load(super().__rpow__(other), self.shape)
     @override
     def __neg__(self) -> 'Matrix[R, C]':
         return Matrix.load(super().__neg__(), self.shape)
@@ -185,6 +195,12 @@ class Matrix[R: int, C: int](Tensor):
     @override
     def log(self) -> 'Matrix[R, C]':
         return cast(Matrix[R, C], super().log())
+    @override
+    def sin(self) -> 'Matrix[R, C]':
+        return cast(Matrix[R, C], super().sin())
+    @override
+    def cos(self) -> 'Matrix[R, C]':
+        return cast(Matrix[R, C], super().cos())
     @overload
     def split(self, split: List[int], dim: Literal[0]) -> Tuple['Matrix[int, C]', ...]: ...
     @overload

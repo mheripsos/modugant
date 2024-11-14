@@ -1,6 +1,6 @@
 from typing import Any, List, Literal, Tuple, Union, cast, overload
 
-from torch import Tensor, stack
+from torch import arange as t_arange
 from torch import cat as t_cat
 from torch import normal as t_normal
 from torch import ones as t_ones
@@ -8,6 +8,7 @@ from torch import rand as t_rand
 from torch import randint as t_randint
 from torch import randn as t_randn
 from torch import randperm as t_randperm
+from torch import stack
 from torch import zeros as t_zeros
 from torch.nn.functional import cross_entropy as t_cross_entropy
 from torch.nn.functional import one_hot as t_one_hot
@@ -37,6 +38,10 @@ def cat[R: int, C: int](
 ) -> Matrix[Any, Any]:
     '''Concatenate matrices.'''
     return Matrix.load(t_cat(tensors, dim = dim), shape)
+
+def arange[N: int](end: N) -> Matrix[N, One]:
+    '''Create a matrix of range values.'''
+    return Matrix.load(t_arange(end).reshape(end, 1), (end, Dim.one()))
 
 def zeros[R: int, C: int](shape: Tuple[R, C], **kwargs: Any) -> Matrix[R, C]:
     '''Create a matrix of zeros.'''
@@ -84,34 +89,25 @@ def cross_entropy[R: int, C: int](
     targets: Matrix[R, One],
     reduction: Literal['mean', 'sum']
 ) -> Matrix[One, One]:...
-@overload
 def cross_entropy[R: int, C: int](
     logits: Matrix[R, C],
-    targets: Matrix[R, Any],
-    reduction: str
-) -> Tensor:...
-def cross_entropy[R: int, C: int](
-    logits: Matrix[R, C],
-    targets: Matrix[R, Any],
+    targets: Matrix[R, One],
     reduction: str = 'mean',
     *args: Any,
     **kwargs: Any
-) -> Tensor:
+) -> Matrix[Any, Any]:
     '''Compute the cross-entropy loss.'''
-    if len(targets.shape) == 2 and targets.shape[1] == 1:
-        entropy = t_cross_entropy(
-            logits,
-            targets[..., 0],
-            reduction = reduction,
-            *args,
-            **kwargs
-        ).reshape(targets.shape)
-        if reduction == 'none':
-            return Matrix.load(entropy, targets.shape)
-        else:
-            return Matrix.load(entropy, (Dim.one(), Dim.one()))
+    entropy = t_cross_entropy(
+        logits,
+        targets[..., 0],
+        reduction = reduction,
+        *args,
+        **kwargs
+    ).reshape(targets.shape)
+    if reduction == 'none':
+        return Matrix.load(entropy, targets.shape)
     else:
-        return t_cross_entropy(logits, targets, reduction = reduction, *args, **kwargs)
+        return Matrix.load(entropy, (Dim.one(), Dim.one()))
 
 ## Custom operations
 def sums[R: int, C: int](matrices: Tuple[Matrix[R, C], ...]) -> Matrix[R, C]:
