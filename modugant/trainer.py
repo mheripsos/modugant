@@ -12,6 +12,7 @@ from torch import device
 
 from modugant.device import Device, check_device
 from modugant.matrix import Dim
+from modugant.matrix.matrix import Matrix
 from modugant.matrix.ops import cat, ones, zeros
 from modugant.protocols import Action, Connector, Discriminator, Generator, Regimen, Reporter
 
@@ -143,3 +144,18 @@ class Trainer[C: int, L: int, G: int, D: int]:
             yield
             _ = self.__generator.train(True)
             _ = self.__discriminator.train(True)
+    def sample[N: int](self, n: N) -> Matrix[N, D]:
+        '''
+        Sample the generator.
+
+        Args:
+            n (int): The number of samples.
+
+        Returns:
+            Matrix: The samples.
+
+        '''
+        with self.test():
+            condition = self.__connector.condition(self.__connector.sample(n))
+            generated = self.__generator.sample(condition).detach()
+            return self.__connector.prepare(condition, generated)

@@ -1,12 +1,20 @@
 - detach generator/discriminator/discriminator from training data (eval version)
     - serialization of generator
     - serialization of discriminator
-    - condition generator?
-- covariance mismatch penalty
-    - for a "folded discriminator", calculate covariance matrix, penalize distance from expected, backprop
-- parameterized loader
-    - for underlying data D, load D x W, backprop onto W.
-    - representation of categories not as one-hot, but rather as learned vectors
+    - a detached generator would be too dependent on connector
+        - particularly at condition generation
+        - particularly at preparation (pre-discriminator transformation)
+        - can these be somehow detached?
+- condition generator
+    - conditions now have to be generated from the underlying data
+    - how can we generate them from nothing, or sample them from some representative distribution, derived from the data
+    - do all 0s in a one-hot actually represent a null condition? Is it unbiased? I really feel like its not
+- module ideas
+    - covariance mismatch penalty
+        - for a "folded discriminator", calculate covariance matrix, penalize distance from expected, backprop
+    - parameterized loader
+        - for underlying data D, load D x W, backprop onto W.
+        - representation of categories not as one-hot, but rather as learned vectors
 - evaluation:
     -  [Goodfellow 2018]: We estimate probability of the test data under *p<sub>g</sub>* by fitting a Gaussian Parzen window to the samples generated with *G* and reporting the log-0likelihood under this distribution. The *σ* parameter of the Gaussians was obtained by cross validation on the validation set. This procedure was introduced in Breuleux et. al. [7] and used for various generative models for which the exact likelihood is not tractable [23, 3, 4]. [...] This method of estimating the likelihood has somewhat high variance and does not perform well in high dimensional spaces but it is the best method available to our knowledge.
     - [3] Bengio Y., Mesnil G. ... (2013) Better mixing via deep representation
