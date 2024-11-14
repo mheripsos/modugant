@@ -31,6 +31,10 @@ class ComposedConnector[C: int, G: int, D: int](ComposedTransformer[C, G, D], Co
         super().__init__(conditioner, interceptor, penalizer, loader)
         self._sampler = LoadingSampler(sampler, self._loader)
     @override
+    def update(self) -> None:
+        super().update()
+        self._sampler.update()
+    @override
     def sample[N: int](self, batch: N) -> Matrix[N, D]:
         return self._sampler.sample(batch)
     @override

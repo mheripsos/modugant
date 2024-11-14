@@ -208,7 +208,14 @@ class Discriminator[C: int, D: int](WithConditions[C], WithOutputs[D], Protocol)
         '''The current learning rate of the generator.'''
         ...
 
-class Conditioner[C: int, D: int](WithConditions[C], WithOutputs[D], Protocol):
+class Updatable(Protocol):
+    '''Protocol for updatable classes.'''
+
+    def update(self) -> None:
+        '''Update the data source.'''
+        pass
+
+class Conditioner[C: int, D: int](WithConditions[C], WithOutputs[D], Updatable, Protocol):
     '''
     Conditioner for GANs.
 
@@ -239,7 +246,7 @@ class Conditioner[C: int, D: int](WithConditions[C], WithOutputs[D], Protocol):
         '''
         ...
 
-class Inteceptor[C: int, G: int, D: int](WithConditions[C], WithIntermediates[G], WithOutputs[D], Protocol):
+class Inteceptor[C: int, G: int, D: int](WithConditions[C], WithIntermediates[G], WithOutputs[D], Updatable, Protocol):
     '''
     Inteceptor for GANs.
 
@@ -273,7 +280,7 @@ class Inteceptor[C: int, G: int, D: int](WithConditions[C], WithIntermediates[G]
         '''
         ...
 
-class Penalizer[C: int, G: int](WithConditions[C], WithIntermediates[G], Protocol):
+class Penalizer[C: int, G: int](WithConditions[C], WithIntermediates[G], Updatable, Protocol):
     '''
     Penalizer for GANs.
 
@@ -306,11 +313,8 @@ class Penalizer[C: int, G: int](WithConditions[C], WithIntermediates[G], Protoco
 
         '''
         ...
-    def update(self) -> None:
-        '''Update the data source.'''
-        ...
 
-class Loader[D: int](WithOutputs[D], Protocol):
+class Loader[D: int](WithOutputs[D], Updatable, Protocol):
     '''
     Loader for GANs.
 
@@ -387,7 +391,7 @@ class Transformer[C: int, G: int, D: int](
 
     ...
 
-class Sampler[D: int](WithOutputs[D], Protocol):
+class Sampler[D: int](WithOutputs[D], Updatable, Protocol):
     '''
     Sampler for GANs.
 

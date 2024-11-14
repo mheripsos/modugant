@@ -34,6 +34,10 @@ class JointConnector[C: int, G: int, D: int](JointTransformer[C, G, D], Connecto
         super().__init__(conditions, intermediates, outputs, transformers)
         self._sampler = LoadingSampler(sampler, self._loader)
     @override
+    def update(self) -> None:
+        super().update()
+        self._sampler.update()
+    @override
     def sample[N: int](self, batch: N) -> Matrix[N, D]:
         return self._sampler.sample(batch)
     @override

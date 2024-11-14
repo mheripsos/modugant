@@ -47,6 +47,3 @@ class EntropyPenalizer[C: int, G: int](Penalizer[C, G]):
             for (c_idx, d_idx) in self._index
         )
         return sums(losses).sum(dim = 0, keepdim = True) / condition.shape[0]
-    @override
-    def update(self) -> None:
-        pass

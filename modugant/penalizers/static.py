@@ -17,6 +17,3 @@ class StaticPenalizer[C: int, G: int](Penalizer[C, G]):
     @override
     def loss[N: int](self, condition: Matrix[N, C], intermediate: Matrix[N, G]) -> Matrix[One, One]:
         return zeros((Dim.one(), Dim.one()))
-    @override
-    def update(self) -> None:
-        pass

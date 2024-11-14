@@ -52,7 +52,10 @@ class ComposedTransformer[C: int, G: int, D: int](Transformer[C, G, D]):
         return self._penalizer.loss(condition, intermediate).to(self._device)
     @override
     def update(self) -> None:
+        self._conditioner.update()
+        self._inteceptor.update()
         self._penalizer.update()
+        self._loader.update()
     @override
     def load[N: int](self, data: Matrix[N, int]) -> Matrix[N, D]:
         return self._loader.load(data).to(self._device)
