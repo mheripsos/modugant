@@ -3,8 +3,8 @@ from typing import List, Tuple
 from modugant.conditioners.category import CategoryConditioner
 from modugant.interceptors.softmax import SoftmaxInterceptor
 from modugant.loaders.category import CategoryLoader
+from modugant.penalizers.entropy import EntropyPenalizer
 from modugant.transformers.composed import ComposedTransformer
-from modugant.updaters.entropy import EntropyUpdater
 
 
 class CategoryTransformer[B: int](ComposedTransformer[B, B, B]):
@@ -30,7 +30,7 @@ class CategoryTransformer[B: int](ComposedTransformer[B, B, B]):
                 samples = 1
             ),
             interceptor = SoftmaxInterceptor(bins, bins, bins, index = [(0, bins)]),
-            updater = EntropyUpdater(bins, bins, index = [(0, 0, bins)]),
+            penalizer = EntropyPenalizer(bins, bins, index = [(0, 0, bins)]),
             loader = CategoryLoader(
                 bins,
                 index = [index]
@@ -72,10 +72,9 @@ class CategoriesTransformer[B: int](ComposedTransformer[B, B, B]):
                 width,
                 index = cumu
             ),
-            updater = EntropyUpdater(
+            penalizer = EntropyPenalizer(
                 width,
                 width,
-                # category index and data index are the same
                 index = [(start, start, size) for (start, size) in cumu]
             ),
             loader = CategoryLoader(

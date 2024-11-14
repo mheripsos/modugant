@@ -3,14 +3,14 @@ from typing import override
 from modugant.matrix import Matrix
 from modugant.matrix.dim import Dim, One
 from modugant.matrix.ops import zeros
-from modugant.protocols import Updater
+from modugant.protocols import Penalizer
 
 
-class StaticUpdater[C: int, G: int](Updater[C, G]):
-    '''Static updater for GANs.'''
+class StaticPenalizer[C: int, G: int](Penalizer[C, G]):
+    '''Static penalizer for GANs.'''
 
     def __init__(self, conditions: C, intermediates: G) -> None:
-        '''Initialize the static updater.'''
+        '''Initialize the static penalizer.'''
         self._conditions = conditions
         self._intermediates = intermediates
 

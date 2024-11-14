@@ -4,8 +4,8 @@ from modugant.conditioners import NoneConditioner
 from modugant.connectors.composed import ComposedConnector
 from modugant.interceptors import DirectInterceptor
 from modugant.matrix.dim import Dim, Zero
-from modugant.protocols import Loader, Sampler, Updater
-from modugant.updaters import StaticUpdater
+from modugant.penalizers import StaticPenalizer
+from modugant.protocols import Loader, Penalizer, Sampler
 
 
 class DirectConnector[D: int](ComposedConnector[Zero, D, D]):
@@ -15,7 +15,7 @@ class DirectConnector[D: int](ComposedConnector[Zero, D, D]):
         self,
         dim: D,
         sampler: Sampler[int],
-        updater: Optional[Updater[Zero, D]] = None,
+        penalizer: Optional[Penalizer[Zero, D]] = None,
         loader: Optional[Loader[D]] = None
     ) -> None:
         '''
@@ -24,14 +24,14 @@ class DirectConnector[D: int](ComposedConnector[Zero, D, D]):
         Args:
             dim (int): The number of inputs and outputs.
             sampler (Sampler): The sampler.
-            updater (Updater): The updater.
+            penalizer (Penalizer): The penalizer.
             loader (Loader): The loader.
 
         '''
         super().__init__(
             NoneConditioner(dim),
             DirectInterceptor(Dim.zero(), dim),
-            updater or StaticUpdater(Dim.zero(), dim),
+            penalizer or StaticPenalizer(Dim.zero(), dim),
             sampler,
             loader
         )

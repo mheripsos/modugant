@@ -4,8 +4,8 @@ from modugant.device import Device
 from modugant.loaders import DirectLoader
 from modugant.matrix import Matrix
 from modugant.matrix.dim import One
-from modugant.protocols import Conditioner, Inteceptor, Loader, Transformer, Updater
-from modugant.updaters import StaticUpdater
+from modugant.penalizers import StaticPenalizer
+from modugant.protocols import Conditioner, Inteceptor, Loader, Penalizer, Transformer
 
 
 class ComposedTransformer[C: int, G: int, D: int](Transformer[C, G, D]):
@@ -15,7 +15,7 @@ class ComposedTransformer[C: int, G: int, D: int](Transformer[C, G, D]):
         self,
         conditioner: Conditioner[C, D],
         interceptor: Inteceptor[C, G, D],
-        updater: Optional[Updater[C, G]] = None,
+        penalizer: Optional[Penalizer[C, G]] = None,
         loader: Optional[Loader[D]] = None,
         device: Device = 'cpu'
     ) -> None:
@@ -25,14 +25,14 @@ class ComposedTransformer[C: int, G: int, D: int](Transformer[C, G, D]):
         Args:
             conditioner (Conditioner[C, D]): The conditioner.
             interceptor (Inteceptor[C, G, D]): The inteceptor.
-            updater (Optional[Updater[C, G]]): The updater.
+            penalizer (Optional[Penalizer[C, G]]): The penalizer.
             loader (Optional[Loader[D]]): The loader.
             device (Device): The device.
 
         '''
         self._conditioner = conditioner
         self._inteceptor = interceptor
-        self._updater = updater or StaticUpdater(interceptor.conditions, interceptor.intermediates)
+        self._penalizer = penalizer or StaticPenalizer(interceptor.conditions, interceptor.intermediates)
         self._loader = loader or DirectLoader(
             interceptor.outputs,
             [(0, interceptor.outputs)]
@@ -49,10 +49,10 @@ class ComposedTransformer[C: int, G: int, D: int](Transformer[C, G, D]):
         return self._inteceptor.prepare(condition, intermediate).to(self._device)
     @override
     def loss[N: int](self, condition: Matrix[N, C], intermediate: Matrix[N, G]) -> Matrix[One, One]:
-        return self._updater.loss(condition, intermediate).to(self._device)
+        return self._penalizer.loss(condition, intermediate).to(self._device)
     @override
     def update(self) -> None:
-        self._updater.update()
+        self._penalizer.update()
     @override
     def load[N: int](self, data: Matrix[N, int]) -> Matrix[N, D]:
         return self._loader.load(data).to(self._device)

@@ -273,9 +273,9 @@ class Inteceptor[C: int, G: int, D: int](WithConditions[C], WithIntermediates[G]
         '''
         ...
 
-class Updater[C: int, G: int](WithConditions[C], WithIntermediates[G], Protocol):
+class Penalizer[C: int, G: int](WithConditions[C], WithIntermediates[G], Protocol):
     '''
-    Updater for GANs.
+    Penalizer for GANs.
 
     Type parameters:
         C: The number of conditions.
@@ -354,7 +354,7 @@ class Loader[D: int](WithOutputs[D], Protocol):
 class Transformer[C: int, G: int, D: int](
     Conditioner[C, D],
     Inteceptor[C, G, D],
-    Updater[C, G],
+    Penalizer[C, G],
     Loader[D],
     Protocol
 ):
@@ -427,7 +427,7 @@ class Sampler[D: int](WithOutputs[D], Protocol):
 class Connector[C: int, G: int, D: int](
     Conditioner[C, D],
     Inteceptor[C, G, D],
-    Updater[C, G],
+    Penalizer[C, G],
     Sampler[D],
     Protocol
 ):

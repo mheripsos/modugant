@@ -4,11 +4,11 @@ from modugant.matrix import Matrix
 from modugant.matrix.dim import One
 from modugant.matrix.index import Index
 from modugant.matrix.ops import cross_entropy, sums
-from modugant.protocols import Updater
+from modugant.protocols import Penalizer
 
 
-class EntropyUpdater[C: int, G: int](Updater[C, G]):
-    '''Entropy updater for GANs.'''
+class EntropyPenalizer[C: int, G: int](Penalizer[C, G]):
+    '''Entropy penalizer for GANs.'''
 
     def __init__(
         self,
@@ -17,7 +17,7 @@ class EntropyUpdater[C: int, G: int](Updater[C, G]):
         index: List[Tuple[int, int, int]]
     ) -> None:
         '''
-        Initialize the entropy updater.
+        Initialize the entropy penalizer.
 
         Args:
             conditions (C: int): The number of conditions.

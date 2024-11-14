@@ -3,9 +3,9 @@ from typing import Any, Sequence
 from modugant.conditioners.joint import JointConditioner
 from modugant.interceptors.joint import JointInterceptor
 from modugant.loaders.joint import JointLoader
+from modugant.penalizers.joint import JointPenalizer
 from modugant.protocols import Transformer
 from modugant.transformers.composed import ComposedTransformer
-from modugant.updaters.joint import JointUpdater
 
 
 class JointTransformer[C: int, G: int, D: int](ComposedTransformer[C, G, D]):
@@ -34,6 +34,6 @@ class JointTransformer[C: int, G: int, D: int](ComposedTransformer[C, G, D]):
         super().__init__(
             JointConditioner(conditions, outputs, transformers),
             JointInterceptor(conditions, intermediates, outputs, transformers),
-            JointUpdater(conditions, intermediates, transformers),
+            JointPenalizer(conditions, intermediates, transformers),
             JointLoader(outputs, transformers)
         )
