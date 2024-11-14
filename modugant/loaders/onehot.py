@@ -6,7 +6,7 @@ from modugant.matrix.ops import cat, one_hot
 from modugant.protocols import Loader
 
 
-class CategoryLoader[D: int](Loader[D]):
+class OneHotLoader[D: int](Loader[D]):
     '''Category loader for GANs.'''
 
     def __init__(
@@ -15,7 +15,7 @@ class CategoryLoader[D: int](Loader[D]):
         index: List[Tuple[int, int]]
     ) -> None:
         '''
-        Initialize the category loader.
+        Initialize the one-hot loader.
 
         Args:
             dim (int): The number of outputs.

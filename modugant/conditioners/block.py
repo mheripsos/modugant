@@ -1,4 +1,4 @@
-'''Category Conditioner.'''
+'''Block Conditioner.'''
 from typing import List, Tuple, override
 
 from modugant.matrix import Index, Matrix
@@ -7,8 +7,8 @@ from modugant.matrix.ops import cat, one_hot, ones, randint, sums
 from modugant.protocols import Conditioner
 
 
-class CategoryConditioner[C: int, D: int](Conditioner[C, D]):
-    '''Category conditioner for GANs.'''
+class BlockConditioner[C: int, D: int](Conditioner[C, D]):
+    '''Block conditioner for GANs.'''
 
     def __init__(
         self,
@@ -18,13 +18,13 @@ class CategoryConditioner[C: int, D: int](Conditioner[C, D]):
         samples: int
     ) -> None:
         '''
-        Initialize the category conditioner.
+        Initialize the block conditioner.
 
         Args:
             conditions (C: int): The number of conditions.
             outputs (D: int): The number of generated outputs.
             index (List[Tuple[int, int]]): The start and size block indices.
-            samples (int): The number of categories to sample.
+            samples (int): The number of blocks to sample.
 
         '''
         assert sum([size for (_, size) in index]) == conditions
@@ -53,17 +53,17 @@ class CategoryConditioner[C: int, D: int](Conditioner[C, D]):
         )
         return cat(clones, dim = 1, shape = (data.shape[0], self._conditions))
     def _coeffs[N: int](self, batch: N) -> Matrix[N, C]:
-        # sample category indices for each (batch x size)
+        # sample block indices for each (batch x size)
         sample = randint(0, len(self.__index), (batch, self.__samples))
-        # one-hot encode the category indices and stack into new dimension
+        # one-hot encode the block indices and stack into new dimension
         coeffs = sums(
             tuple(
                 one_hot(sample[..., Index.at(i)], self.__chunks)
                 for i in range(self.__samples)
             )
         )
-        # sum and clamp the one-hot encodings to do a union of the samples (if same category was sampled twice)
-        # then map the one-hot encodings to the original category indices, so each one-hot encoding component is
+        # sum and clamp the one-hot encodings to do a union of the samples (if same block was sampled twice)
+        # then map the one-hot encodings to the original block indices, so each one-hot encoding component is
         # repeated enough times for each of the original data indices
         # e.g.
         #  index = [(0, 3), (6, 9), (12, 14)]

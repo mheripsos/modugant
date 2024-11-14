@@ -1,11 +1,11 @@
 '''Pre-built Loaders.'''
-from .category import CategoryLoader
 from .direct import DirectLoader
 from .joint import JointLoader
+from .onehot import OneHotLoader
 from .standardize import StandardizeLoader
 
 __all__ = [
-    'CategoryLoader',
+    'OneHotLoader',
     'DirectLoader',
     'JointLoader',
     'StandardizeLoader'

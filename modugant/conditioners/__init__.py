@@ -1,11 +1,11 @@
 '''Pre-built Conditioners.'''
-from .category import CategoryConditioner
+from .block import BlockConditioner
 from .joint import JointConditioner
 from .none import NoneConditioner
 from .pooled import PooledConditioner
 
 __all__ = [
-    'CategoryConditioner',
+    'BlockConditioner',
     'JointConditioner',
     'NoneConditioner',
     'PooledConditioner'

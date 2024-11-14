@@ -1,14 +1,14 @@
 from typing import List, Tuple
 
-from modugant.conditioners.category import CategoryConditioner
+from modugant.conditioners.block import BlockConditioner
 from modugant.interceptors.softmax import SoftmaxInterceptor
-from modugant.loaders.category import CategoryLoader
+from modugant.loaders.onehot import OneHotLoader
 from modugant.penalizers.entropy import EntropyPenalizer
 from modugant.transformers.composed import ComposedTransformer
 
 
 class CategoryTransformer[B: int](ComposedTransformer[B, B, B]):
-    '''Transformer for a single category.'''
+    '''Transformer for a single one-hot category.'''
 
     def __init__(
         self,
@@ -23,7 +23,7 @@ class CategoryTransformer[B: int](ComposedTransformer[B, B, B]):
         '''
         (_, bins) = index
         super().__init__(
-            conditioner = CategoryConditioner(
+            conditioner = BlockConditioner(
                 bins,
                 bins,
                 index = [(0, bins)],
@@ -31,14 +31,14 @@ class CategoryTransformer[B: int](ComposedTransformer[B, B, B]):
             ),
             interceptor = SoftmaxInterceptor(bins, bins, bins, index = [(0, bins)]),
             penalizer = EntropyPenalizer(bins, bins, index = [(0, 0, bins)]),
-            loader = CategoryLoader(
+            loader = OneHotLoader(
                 bins,
                 index = [index]
             )
         )
 
 class CategoriesTransformer[B: int](ComposedTransformer[B, B, B]):
-    '''Transformer for many categorioes.'''
+    '''Transformer for many one-hot categories.'''
 
     def __init__(
         self,
@@ -60,7 +60,7 @@ class CategoriesTransformer[B: int](ComposedTransformer[B, B, B]):
         ## The index and size of categories after being loaded
         cumu = [(sum(sizes[:i]), sizes[i]) for i in range(len(index))]
         super().__init__(
-            conditioner = CategoryConditioner(
+            conditioner = BlockConditioner(
                 width,
                 width,
                 index = cumu,
@@ -77,7 +77,7 @@ class CategoriesTransformer[B: int](ComposedTransformer[B, B, B]):
                 width,
                 index = [(start, start, size) for (start, size) in cumu]
             ),
-            loader = CategoryLoader(
+            loader = OneHotLoader(
                 width,
                 index = index
             )
