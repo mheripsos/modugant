@@ -196,6 +196,12 @@ class Matrix[R: int, C: int](Tensor):
     def log(self) -> 'Matrix[R, C]':
         return cast(Matrix[R, C], super().log())
     @override
+    def exp(self) -> 'Matrix[R, C]':
+        return cast(Matrix[R, C], super().exp())
+    @override
+    def sqrt(self) -> 'Matrix[R, C]':
+        return cast(Matrix[R, C], super().sqrt())
+    @override
     def sin(self) -> 'Matrix[R, C]':
         return cast(Matrix[R, C], super().sin())
     @override

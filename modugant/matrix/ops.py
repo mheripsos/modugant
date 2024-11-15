@@ -2,6 +2,7 @@ from typing import Any, List, Literal, Tuple, Union, cast, overload
 
 from torch import arange as t_arange
 from torch import cat as t_cat
+from torch import eye as t_eye
 from torch import normal as t_normal
 from torch import ones as t_ones
 from torch import rand as t_rand
@@ -50,6 +51,10 @@ def zeros[R: int, C: int](shape: Tuple[R, C], **kwargs: Any) -> Matrix[R, C]:
 def ones[R: int, C: int](shape: Tuple[R, C], **kwargs: Any) -> Matrix[R, C]:
     '''Create a matrix of ones.'''
     return Matrix.load(t_ones(shape, **kwargs), shape)
+
+def eye[D: int](dim: D) -> Matrix[D, D]:
+    '''Create an identity matrix.'''
+    return Matrix.load(t_eye(dim, dim), (dim, dim))
 
 def normal[R: int, C: int](mean: float, std: float, shape: Tuple[R, C], **kwargs: Any) -> Matrix[R, C]:
     '''Create a matrix of normal random values.'''
