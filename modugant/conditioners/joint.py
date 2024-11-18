@@ -31,7 +31,7 @@ class JointConditioner[C: int, D: int](Conditioner[C, D]):
         self._outputs = outputs
         sizes = [conditioner.outputs for conditioner in conditioners]
         self.__backmap = [
-            Index.slice(sum(sizes[:i]), sizes[i])
+            Index.slice(sum(sizes[:i]), sizes[i], outputs)
             for i in range(len(conditioners))
         ]
     @override

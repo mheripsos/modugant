@@ -7,7 +7,7 @@ from modugant.matrix.ops import cat, one_hot, ones, randint, sums
 from modugant.protocols import Conditioner
 
 
-class BlockConditioner[C: int, D: int](Conditioner[C, D]):
+class BlockConditioner[C: int, D: int, P: int](Conditioner[C, D]):
     '''Block conditioner for GANs.'''
 
     def __init__(
@@ -15,7 +15,7 @@ class BlockConditioner[C: int, D: int](Conditioner[C, D]):
         conditions: C,
         outputs: D,
         index: List[Tuple[int, int]],
-        samples: int
+        samples: P
     ) -> None:
         '''
         Initialize the block conditioner.
@@ -33,7 +33,7 @@ class BlockConditioner[C: int, D: int](Conditioner[C, D]):
         self._outputs = outputs
         self.__samples = samples
         self.__index = [
-            Index.slice(start, size)
+            Index.slice(start, size, outputs)
             for (start, size) in index
         ]
         self.__chunks = len(index)
@@ -58,8 +58,8 @@ class BlockConditioner[C: int, D: int](Conditioner[C, D]):
         # one-hot encode the block indices and stack into new dimension
         coeffs = sums(
             tuple(
-                one_hot(sample[..., Index.at(i)], self.__chunks)
-                for i in range(self.__samples)
+                one_hot(sample[..., Index.at(i, self.__samples)], self.__chunks)
+                for i in Index.range(self.__samples)
             )
         )
         # sum and clamp the one-hot encodings to do a union of the samples (if same block was sampled twice)

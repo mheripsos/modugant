@@ -43,13 +43,13 @@ class PositionalLoader[D: int](Loader[D]):
     def _encode[N: int](self, data: Matrix[N, One]) -> Matrix[N, D]:
         exp = data @ self.__encoder
         outputs = tuple(
-            exp[..., Index.at(i)].sin() if i % 2 == 0 else exp[..., Index.at(i)].cos()
+            exp[..., Index.at(i, self._outputs)].sin() if i % 2 == 0 else exp[..., Index.at(i, self._outputs)].cos()
             for i in range(self._outputs)
         )
         return cat(outputs, dim = 1, shape = (data.shape[0], self._outputs))
     @override
     def load[N: int](self, data: Matrix[N, int]) -> Matrix[N, D]:
-        return self._encode(data[..., Index.at(self.__index)])
+        return self._encode(data[..., Index.at(self.__index, self.__index)])
     @override
     def unload[N: int](self, data: Matrix[N, D]) -> Matrix[N, Any]:
         candidate = data @ self.__decoder

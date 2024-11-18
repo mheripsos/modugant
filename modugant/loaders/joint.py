@@ -40,7 +40,12 @@ class JointLoader[D: int](Loader[D]):
     @override
     def unload[N: int](self, data: Matrix[N, D]) -> Matrix[N, int]:
         unloaded = tuple(
-            self.__loaders[i].unload(data[..., Index.slice(self.__backmap[i], self.__loaders[i].outputs)])
+            self.__loaders[i].unload(
+                data[
+                    ...,
+                    Index.slice(self.__backmap[i], self.__loaders[i].outputs, self._outputs)
+                ]
+            )
             for i in range(len(self.__loaders))
         )
         return cat(unloaded, dim = 1, shape = (data.shape[0], self._outputs))

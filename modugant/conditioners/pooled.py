@@ -25,7 +25,6 @@ class PooledConditioner[C: int, D: int](Conditioner[C, D]):
 
         '''
         assert sum([conditioner.conditions for conditioner in conditioners]) == conditions
-        assert all([conditioner.outputs == outputs for conditioner in conditioners])
         self.__conditioners = conditioners
         self._conditions = conditions
         self._outputs = outputs

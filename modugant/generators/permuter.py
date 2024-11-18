@@ -1,15 +1,16 @@
-from typing import List, Optional, Self, override
+from typing import Self, override
 
 from torch import Tensor
 
 from modugant.device import Device, check_device
 from modugant.matrix import Index, Matrix
 from modugant.matrix.dim import One, Zero
-from modugant.matrix.ops import cat, randperm
+from modugant.matrix.index import Vector
+from modugant.matrix.ops import cat
 from modugant.protocols import Generator
 
 
-class PermutingGenerator[C: int, G: int](Generator[C, Zero, G]):
+class PermutingGenerator[C: int, G: int, F: int](Generator[C, Zero, G]):
     '''A generator that permutes the data without learning.'''
 
     def __init__(
@@ -17,8 +18,8 @@ class PermutingGenerator[C: int, G: int](Generator[C, Zero, G]):
         conditions: C,
         intermediates: G,
         data: Tensor,
-        index: Optional[List[int]] = None,
-        folds: Optional[List[int]] = None
+        index: Index[G, int],
+        folds: Vector[F, int]
     ) -> None:
         '''
         Initialize the generator model.
@@ -31,24 +32,18 @@ class PermutingGenerator[C: int, G: int](Generator[C, Zero, G]):
             folds (Optional[List[int]]): The fold sizes to keep intact during permutation
 
         '''
-        if index is None:
-            index = Index.slice(0, intermediates)
-        else:
-            index = Index.load(index, intermediates)
-        if folds is None:
-            folds = [1] * len(index)
         assert len(index) == intermediates
         assert sum(folds) == intermediates
         self._conditions = conditions
         self._intermediates = intermediates
-        matrix = Matrix.load(data, shape = (data.shape[0], data.shape[1]))
+        matrix = Matrix(data, shape = (data.shape[0], data.shape[1]))
         self._splits = matrix[..., index].split(folds, dim = 1)
         self._dim = data.shape[0]
         self._device = data.device
     @override
     def sample[N: int](self, condition: Matrix[N, C]) -> Matrix[N, G]:
         index = Index.sample(condition.shape[0], self._dim)
-        perm = randperm(len(self._splits))
+        perm = Index.randperm(self._splits.dim)
         permed = cat(
             tuple(self._splits[i][index, ...] for i in perm),
             dim = 1,
@@ -67,7 +62,7 @@ class PermutingGenerator[C: int, G: int](Generator[C, Zero, G]):
     @override
     def move(self, device: Device) -> Self:
         device = check_device(device)
-        self._splits = tuple(split.to(device) for split in self._splits)
+        self._splits = Vector((split.to(device) for split in self._splits), self._splits.dim)
         return self
     @property
     @override

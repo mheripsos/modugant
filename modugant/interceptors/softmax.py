@@ -31,7 +31,7 @@ class SoftmaxInterceptor[C: int, G: int, D: int](Inteceptor[C, G, D]):
         self._intermediates = intermediates
         self._outputs = outputs
         self._index = [
-            Index.slice(i_index[0], i_index[1])
+            Index.slice(i_index[0], i_index[1], intermediates)
             for i_index in index
         ]
     @override

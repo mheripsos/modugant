@@ -53,7 +53,7 @@ class BasicDiscriminator[C: int, D: int](Module, Discriminator[C, D]):
         return self._model(data)
     @override
     def predict[N: int](self, condition: Matrix[N, C], data: Matrix[N, D]) -> Matrix[N, One]:
-        return Matrix.load(
+        return Matrix(
             self.forward(cat([condition, data], dim = 1)),
             shape = (condition.shape[0], Dim.one())
         )

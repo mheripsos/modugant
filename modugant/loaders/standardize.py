@@ -27,7 +27,7 @@ class StandardizeLoader[D: int](Loader[D]):
         '''
         assert len(index) == dim
         self._outputs = dim
-        self._index = Index.load(index, dim)
+        self._index = Index(index, dim)
         subset = Matrix.load(data, (data.shape[0], data.shape[1]))
         self._mean = subset[..., self._index].mean(dim = 0, keepdim = True)
         self._std = subset[..., self._index].std(dim = 0, keepdim = True)
