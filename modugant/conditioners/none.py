@@ -9,21 +9,21 @@ from modugant.matrix.ops import zeros
 from modugant.protocols import Conditioner
 
 
-class NoneConditioner[D: int](Conditioner[Zero, D]):
+class NoneConditioner[S: int](Conditioner[S, Zero]):
     '''Unconditional conditioner for GANs.'''
 
-    def __init__(self, outputs: D) -> None:
+    def __init__(self, sampled: S) -> None:
         '''
         Initialize the unconditional conditioner.
 
         Args:
-            outputs (D: int): The number of generated outputs.
+            sampled (int): The number of sampled dimensions.
 
         '''
         super().__init__()
+        self._sampled = sampled
         self._conditions = Dim.zero()
-        self._outputs = outputs
 
     @override
-    def condition[N: int](self, data: Matrix[N, D]) -> Matrix[N, Zero]:
+    def condition[N: int](self, data: Matrix[N, S]) -> Matrix[N, Zero]:
         return zeros((data.shape[0], Dim.zero()), dtype = float32)

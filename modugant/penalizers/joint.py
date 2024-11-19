@@ -36,8 +36,8 @@ class JointPenalizer[C: int, G: int](Penalizer[C, G]):
         ]
         self.__backmap = [
             (
-                Index.slice(sum(sizes[0][:i]), sizes[0][i]),
-                Index.slice(sum(sizes[1][:i]), sizes[1][i])
+                Index.slice(sum(sizes[0][:i]), sizes[0][i], conditions),
+                Index.slice(sum(sizes[1][:i]), sizes[1][i], intermediates)
             )
             for i in range(len(penalizers))
         ]

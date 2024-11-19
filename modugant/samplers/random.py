@@ -4,7 +4,6 @@ from torch import Tensor
 
 from modugant.matrix import Matrix
 from modugant.matrix.index import Index
-from modugant.matrix.ops import randperm
 from modugant.protocols import Sampler
 
 
@@ -29,10 +28,10 @@ class RandomSampler[D: int](Sampler[D]):
         assert data.shape[1] == dim, f'Data {data} is not of dimension {dim}'
         self._outputs = dim
         n = data.shape[0]
-        sample = randperm(n)
+        sample = Index.randperm(n)
         cuttoff = int(n * split)
-        self._train = Matrix.load(data[sample[:cuttoff], :], (cuttoff, dim))
-        self._test = Matrix.load(data[sample[cuttoff:], :], (n - cuttoff, dim))
+        self._train = Matrix(data[sample[:cuttoff], :], (cuttoff, dim))
+        self._test = Matrix(data[sample[cuttoff:], :], (n - cuttoff, dim))
     @override
     def sample[N: int](self, batch: N) -> Matrix[N, D]:
         '''Generate the index for the batch.'''

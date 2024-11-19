@@ -1,14 +1,14 @@
 from typing import Any, Sequence
 
-from modugant.conditioners.joint import JointConditioner
+from modugant.conditioners.pooled import PooledConditioner
 from modugant.interceptors.joint import JointInterceptor
-from modugant.loaders.joint import JointLoader
+from modugant.loaders.pooled import PooledLoader
 from modugant.penalizers.joint import JointPenalizer
 from modugant.protocols import Transformer
 from modugant.transformers.composed import ComposedTransformer
 
 
-class JointTransformer[C: int, G: int, D: int](ComposedTransformer[C, G, D]):
+class JointTransformer[S: int, C: int, G: int, D: int](ComposedTransformer[S, C, G, D]):
     '''Joint transformer for GANs.'''
 
     def __init__(
@@ -16,7 +16,7 @@ class JointTransformer[C: int, G: int, D: int](ComposedTransformer[C, G, D]):
         conditions: C,
         intermediates: G,
         outputs: D,
-        transformers: Sequence[Transformer[Any, Any, Any]]
+        transformers: Sequence[Transformer[S, Any, Any, Any]]
     ) -> None:
         '''
         Initialize the joint transformer.
@@ -32,8 +32,8 @@ class JointTransformer[C: int, G: int, D: int](ComposedTransformer[C, G, D]):
         assert sum([transformer.intermediates for transformer in transformers]) == intermediates
         assert sum([transformer.outputs for transformer in transformers]) == outputs
         super().__init__(
-            JointConditioner(conditions, outputs, transformers),
+            PooledConditioner(conditions, transformers),
             JointInterceptor(conditions, intermediates, outputs, transformers),
             JointPenalizer(conditions, intermediates, transformers),
-            JointLoader(outputs, transformers)
+            PooledLoader(outputs, transformers)
         )

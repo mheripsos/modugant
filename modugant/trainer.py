@@ -21,11 +21,12 @@ def no_op(_: int, __: Action, ___: str, ____: float, _____: float) -> None:
     '''No operation.'''
     pass
 
-class Trainer[C: int, L: int, G: int, D: int]:
+class Trainer[S: int, C: int, L: int, G: int, D: int]:
     '''
     Trainer for GANs.
 
     Type parameters:
+        S: The number of sampled variables.
         C: The number of conditions.
         L: The number of latent inputs.
         G: The number of generated outputs.
@@ -37,7 +38,7 @@ class Trainer[C: int, L: int, G: int, D: int]:
         self,
         generator: Generator[C, L, G],
         discriminator: Discriminator[C, D],
-        connector: Connector[C, G, D],
+        connector: Connector[S, C, G, D],
         device: Device = 'cpu'
     ) -> None:
         '''
@@ -91,11 +92,11 @@ class Trainer[C: int, L: int, G: int, D: int]:
                 d_error = 0
                 g_error = 0
                 for _ in range(regimen.k):
-                    r_data = self.__connector.sample(regimen.batch)
-                    r_condition = self.__connector.condition(r_data)
-                    f_condition = self.__connector.condition(
-                        self.__connector.sample(int(regimen.batch * regimen.d_factor))
-                    )
+                    r_sample = self.__connector.sample(regimen.batch)
+                    r_condition = self.__connector.condition(r_sample)
+                    r_data = self.__connector.load(r_sample)
+                    f_sample = self.__connector.sample(int(regimen.batch * regimen.d_factor))
+                    f_condition = self.__connector.condition(f_sample)
                     generated = self.__generator.sample(f_condition).detach()
                     f_data = self.__connector.prepare(f_condition, generated)
                     loss = self.__discriminator.step(

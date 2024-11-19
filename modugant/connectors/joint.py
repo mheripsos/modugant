@@ -2,11 +2,10 @@ from typing import Any, Sequence, override
 
 from modugant.matrix import Matrix
 from modugant.protocols import Connector, Sampler, Transformer
-from modugant.samplers.loading import LoadingSampler
 from modugant.transformers import JointTransformer
 
 
-class JointConnector[C: int, G: int, D: int](JointTransformer[C, G, D], Connector[C, G, D]):
+class JointConnector[S: int, C: int, G: int, D: int](JointTransformer[S, C, G, D], Connector[S, C, G, D]):
     '''Joint connector for GANs.'''
 
     def __init__(
@@ -14,8 +13,8 @@ class JointConnector[C: int, G: int, D: int](JointTransformer[C, G, D], Connecto
         conditions: C,
         intermediates: G,
         outputs: D,
-        transformers: Sequence[Transformer[Any, Any, Any]],
-        sampler: Sampler[Any]
+        transformers: Sequence[Transformer[S, Any, Any, Any]],
+        sampler: Sampler[S]
     ) -> None:
         '''
         Initialize the joint connector.
@@ -32,18 +31,18 @@ class JointConnector[C: int, G: int, D: int](JointTransformer[C, G, D], Connecto
         assert sum([transformer.intermediates for transformer in transformers]) == intermediates
         assert sum([transformer.outputs for transformer in transformers]) == outputs
         super().__init__(conditions, intermediates, outputs, transformers)
-        self._sampler = LoadingSampler(sampler, self._loader)
+        self._sampler = sampler
     @override
     def update(self) -> None:
         super().update()
         self._sampler.update()
     @override
-    def sample[N: int](self, batch: N) -> Matrix[N, D]:
+    def sample[N: int](self, batch: N) -> Matrix[N, S]:
         return self._sampler.sample(batch)
     @override
     def restart(self) -> None:
         self._sampler.restart()
     @property
     @override
-    def holdout(self) -> Matrix[int, D]:
+    def holdout(self) -> Matrix[int, S]:
         return self._sampler.holdout

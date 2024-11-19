@@ -8,11 +8,12 @@ from modugant.matrix.ops import arange, cat
 from modugant.protocols import Loader
 
 
-class PositionalLoader[D: int](Loader[D]):
+class PositionalLoader[S: int, D: int](Loader[S, D]):
     '''Positional loader for GANs.'''
 
     def __init__(
         self,
+        sampled: S,
         dim: D,
         index: int,
         max: int
@@ -21,6 +22,7 @@ class PositionalLoader[D: int](Loader[D]):
         Initialize the positional loader.
 
         Args:
+            sampled (int): The number of sampled dimensions
             dim (int): The number of outputs, a power of two.
             index (int): The index to load.
             max (int): The maximum value.
@@ -28,6 +30,8 @@ class PositionalLoader[D: int](Loader[D]):
         '''
         assert dim >= 2 and dim & (dim - 1) == 0, 'Dimension must be a power of two.'
         assert max > 1, 'Size must be greater than one.'
+        assert 0 <= index < sampled, 'Index must be in range.'
+        self._sampled = sampled
         self._outputs = dim
         self.__index = index
         base = Matrix.cell((max / pi) ** (dim / (dim - 2)))
@@ -48,8 +52,8 @@ class PositionalLoader[D: int](Loader[D]):
         )
         return cat(outputs, dim = 1, shape = (data.shape[0], self._outputs))
     @override
-    def load[N: int](self, data: Matrix[N, int]) -> Matrix[N, D]:
-        return self._encode(data[..., Index.at(self.__index, self.__index)])
+    def load[N: int](self, data: Matrix[N, S]) -> Matrix[N, D]:
+        return self._encode(data[..., Index.at(self.__index, self._sampled)])
     @override
     def unload[N: int](self, data: Matrix[N, D]) -> Matrix[N, Any]:
         candidate = data @ self.__decoder

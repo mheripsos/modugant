@@ -5,13 +5,12 @@ from modugant.matrix.index import Index
 from modugant.protocols import Loader
 
 
-class DirectLoader[D: int](Loader[D]):
+class DirectLoader[S: int, D: int](Loader[S, D]):
     '''Direct loader for GANs.'''
 
     def __init__(
         self,
-        dim: D,
-        index: Index[D, int]
+        index: Index[D, S]
     ) -> None:
         '''
         Initialize the direct loader.
@@ -21,10 +20,11 @@ class DirectLoader[D: int](Loader[D]):
             index (List[Tuple[int, int]]): The start and end block indices
 
         '''
-        self._outputs = dim
+        self._sampled = index.cap
+        self._outputs = index.dim
         self._index = index
     @override
-    def load[N: int](self, data: Matrix[N, int]) -> Matrix[N, D]:
+    def load[N: int](self, data: Matrix[N, S]) -> Matrix[N, D]:
         return data[..., self._index]
     @override
     def unload[N: int](self, data: Matrix[N, D]) -> Matrix[N, Any]:

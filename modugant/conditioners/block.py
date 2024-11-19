@@ -7,33 +7,33 @@ from modugant.matrix.ops import cat, one_hot, ones, randint, sums
 from modugant.protocols import Conditioner
 
 
-class BlockConditioner[C: int, D: int, P: int](Conditioner[C, D]):
+class BlockConditioner[S: int, C: int, P: int](Conditioner[S, C]):
     '''Block conditioner for GANs.'''
 
     def __init__(
         self,
+        sampled: S,
         conditions: C,
-        outputs: D,
         index: List[Tuple[int, int]],
-        samples: P
+        picks: P
     ) -> None:
         '''
         Initialize the block conditioner.
 
         Args:
+            sampled (int): The number of sampled dimensions.
             conditions (C: int): The number of conditions.
-            outputs (D: int): The number of generated outputs.
             index (List[Tuple[int, int]]): The start and size block indices.
-            samples (int): The number of blocks to sample.
+            picks (int): The number of blocks to sample.
 
         '''
         assert sum([size for (_, size) in index]) == conditions
-        assert samples <= len(index) and samples > 0
+        assert picks <= len(index) and picks > 0
+        self._sampled = sampled
         self._conditions = conditions
-        self._outputs = outputs
-        self.__samples = samples
+        self.__picks = picks
         self.__index = [
-            Index.slice(start, size, outputs)
+            Index.slice(start, size, sampled)
             for (start, size) in index
         ]
         self.__chunks = len(index)
@@ -45,7 +45,7 @@ class BlockConditioner[C: int, D: int, P: int](Conditioner[C, D]):
             dim = 0,
             shape = (conditions, self.__chunks)
         )
-    def _clone[N: int](self, data: Matrix[N, D]) -> Matrix[N, C]:
+    def _clone[N: int](self, data: Matrix[N, S]) -> Matrix[N, C]:
         # clone the portion of the data from which conditions are drawn
         clones = tuple(
             data[..., slice].clone().detach()
@@ -54,12 +54,12 @@ class BlockConditioner[C: int, D: int, P: int](Conditioner[C, D]):
         return cat(clones, dim = 1, shape = (data.shape[0], self._conditions))
     def _coeffs[N: int](self, batch: N) -> Matrix[N, C]:
         # sample block indices for each (batch x size)
-        sample = randint(0, len(self.__index), (batch, self.__samples))
+        sample = randint(0, len(self.__index), (batch, self.__picks))
         # one-hot encode the block indices and stack into new dimension
         coeffs = sums(
             tuple(
-                one_hot(sample[..., Index.at(i, self.__samples)], self.__chunks)
-                for i in Index.range(self.__samples)
+                one_hot(sample[..., Index.at(i, self.__picks)], self.__chunks)
+                for i in Index.range(self.__picks)
             )
         )
         # sum and clamp the one-hot encodings to do a union of the samples (if same block was sampled twice)
@@ -95,7 +95,7 @@ class BlockConditioner[C: int, D: int, P: int](Conditioner[C, D]):
         #  ]
         return coeffs.clamp(max = 1) @ self.__map.t()
     @override
-    def condition[N: int](self, data: Matrix[N, D]) -> Matrix[N, C]:
+    def condition[N: int](self, data: Matrix[N, S]) -> Matrix[N, C]:
         clone = self._clone(data)
         coeffs = self._coeffs(data.shape[0])
         return clone * coeffs

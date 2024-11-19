@@ -7,52 +7,57 @@ from modugant.penalizers.entropy import EntropyPenalizer
 from modugant.transformers.composed import ComposedTransformer
 
 
-class CategoryTransformer[B: int](ComposedTransformer[B, B, B]):
+class CategoryTransformer[S: int, B: int](ComposedTransformer[S, B, B, B]):
     '''Transformer for a single one-hot category.'''
 
     def __init__(
         self,
-        index: Tuple[int, B] # no longer fixed to (4, 3)
+        sampled: S,
+        index: Tuple[int, B]
     ) -> None:
         '''
         Initialize the transformer for a single category.
 
         Args:
+            sampled: The number of sampled dimensions
             index: The start index in the original data and the size (bins) of the category
 
         '''
         (_, bins) = index
         super().__init__(
             conditioner = BlockConditioner(
-                bins,
+                sampled,
                 bins,
                 index = [(0, bins)],
-                samples = 1
+                picks = 1
             ),
             interceptor = SoftmaxInterceptor(bins, bins, bins, index = [(0, bins)]),
             penalizer = EntropyPenalizer(bins, bins, index = [(0, 0, bins)]),
             loader = OneHotLoader(
+                sampled,
                 bins,
                 index = [index]
             )
         )
 
-class CategoriesTransformer[B: int](ComposedTransformer[B, B, B]):
+class CategoriesTransformer[S: int, B: int](ComposedTransformer[S, B, B, B]):
     '''Transformer for many one-hot categories.'''
 
     def __init__(
         self,
-        width: B, # total size now needs to be specified, and we will assert it
-        index: List[Tuple[int, int]], # take in a list of indices instead
-        samples: int = 1
+        sampled: S,
+        width: B,
+        index: List[Tuple[int, int]],
+        picks: int = 1
     ) -> None:
         '''
         Initialize the transformer for many categories.
 
         Args:
+            sampled: The number of sampled dimensions
             width: The total size of the category
             index: A list of tuples of the start index in the original data and the size (bins) of the category
-            samples: The number of category blocks to sample
+            picks: The number of category blocks to sample
 
         '''
         sizes = [size for (_, size) in index]
@@ -61,10 +66,10 @@ class CategoriesTransformer[B: int](ComposedTransformer[B, B, B]):
         cumu = [(sum(sizes[:i]), sizes[i]) for i in range(len(index))]
         super().__init__(
             conditioner = BlockConditioner(
-                width,
+                sampled,
                 width,
                 index = cumu,
-                samples = samples
+                picks = picks
             ),
             interceptor = SoftmaxInterceptor(
                 width,
@@ -78,6 +83,7 @@ class CategoriesTransformer[B: int](ComposedTransformer[B, B, B]):
                 index = [(start, start, size) for (start, size) in cumu]
             ),
             loader = OneHotLoader(
+                sampled,
                 width,
                 index = index
             )

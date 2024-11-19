@@ -6,13 +6,13 @@ from modugant.matrix.ops import cat
 from modugant.protocols import Loader
 
 
-class JointLoader[D: int](Loader[D]):
-    '''Joint loader for GANs.'''
+class PooledLoader[S: int, D: int](Loader[S, D]):
+    '''Pooled loader for GANs.'''
 
     def __init__(
         self,
         dim: D,
-        loaders: Sequence[Loader[int]]
+        loaders: Sequence[Loader[S, int]]
     ) -> None:
         '''
         Initialize the joint loader.
@@ -23,7 +23,8 @@ class JointLoader[D: int](Loader[D]):
 
         '''
         sizes = [loader.outputs for loader in loaders]
-        assert sum(sizes) == dim
+        assert sum(sizes) == dim, f'{sum(sizes)} != {dim}'
+        self._sampled = loaders[0].sampled
         self._outputs = dim
         self.__loaders = loaders
         self.__backmap = [
@@ -31,7 +32,7 @@ class JointLoader[D: int](Loader[D]):
             for i in range(len(sizes))
         ]
     @override
-    def load[N: int](self, data: Matrix[N, int]) -> Matrix[N, D]:
+    def load[N: int](self, data: Matrix[N, S]) -> Matrix[N, D]:
         loaded = tuple(
             loader.load(data)
             for loader in self.__loaders

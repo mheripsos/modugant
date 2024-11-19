@@ -28,6 +28,15 @@ class WithLatent[L: int](Protocol):
         '''The number of latent inputs.'''
         return self._latents
 
+class WithSampled[S: int](Protocol):
+    '''Abstract class with sampled property.'''
+
+    _sampled: S
+    @property
+    def sampled(self) -> S:
+        '''The number of sample variables.'''
+        return self._sampled
+
 class WithConditions[C: int](Protocol):
     '''Abstract class with conditions property.'''
 
@@ -215,30 +224,30 @@ class Updatable(Protocol):
         '''Update the data source.'''
         pass
 
-class Conditioner[C: int, D: int](WithConditions[C], WithOutputs[D], Updatable, Protocol):
+class Conditioner[S: int, C: int](WithSampled[S], WithConditions[C], Updatable, Protocol):
     '''
     Conditioner for GANs.
 
     Type parameters:
+        S: The number of sample variables.
         C: The number of conditions.
-        D: The number of inputs of data.
 
     Abstract properties (must be assigned in subclass):
+        _sampled: S; The number of sample variables.
         _conditions: C; The number of conditions.
-        _outputs: D; The number of inputs of data.
 
     Abstract methods (must be implemented in subclass):
         condition: Condition the data.
-            [N:int](data: Matrix[N, D]) -> Matrix[N, C]
+            [N:int](data: Matrix[N, int]) -> Matrix[N, C]
 
     '''
 
-    def condition[N: int](self, data: Matrix[N, D]) -> Matrix[N, C]:
+    def condition[N: int](self, data: Matrix[N, S]) -> Matrix[N, C]:
         '''
         Condition the data.
 
         Args:
-            data (Tensor (N, D)): The data to condition.
+            data (Tensor (N, int)): The data to condition.
 
         Returns:
             Tensor (N, C): The conditioned data.
@@ -314,14 +323,16 @@ class Penalizer[C: int, G: int](WithConditions[C], WithIntermediates[G], Updatab
         '''
         ...
 
-class Loader[D: int](WithOutputs[D], Updatable, Protocol):
+class Loader[S: int, D: int,](WithSampled[S], WithOutputs[D], Updatable, Protocol):
     '''
     Loader for GANs.
 
     Type parameters:
-        D: The number of inputs of data.
+        S: The number of sample variables.
+        D: The number of outputs of data.
 
     Abstract properties (must be assigned in subclass):
+        _sampled: S; The number of sample variables.
         _outputs: D; The number of outputs of data.
 
     Abstract methods (must be implemented in subclass):
@@ -330,12 +341,12 @@ class Loader[D: int](WithOutputs[D], Updatable, Protocol):
 
     '''
 
-    def load[N: int](self, data: Matrix[N, int]) -> Matrix[N, D]:
+    def load[N: int](self, data: Matrix[N, S]) -> Matrix[N, D]:
         '''
         Encode the data.
 
         Args:
-            data (Tensor (N, X)): The data to encode.
+            data (Tensor (N, S)): The data to encode.
 
         Returns:
             Tensor (N, D): The condition and encoded data.
@@ -355,11 +366,11 @@ class Loader[D: int](WithOutputs[D], Updatable, Protocol):
         '''
         ...
 
-class Transformer[C: int, G: int, D: int](
-    Conditioner[C, D],
+class Transformer[S: int, C: int, G: int, D: int](
+    Conditioner[S, C],
     Inteceptor[C, G, D],
     Penalizer[C, G],
-    Loader[D],
+    Loader[S, D],
     Protocol
 ):
     '''
@@ -377,46 +388,48 @@ class Transformer[C: int, G: int, D: int](
 
     Abstract methods (must be implemented in subclass):
         condition: Condition the data.
-            [N:int](data: Matrix[N, D]) -> Matrix[N, C]
+            [N:int](data: Matrix[N, int]) -> Matrix[N, C]
         prepare: Transform the data based on the condition.
             [N:int](condition: Matrix[N, C], intermediate: Matrix[N, G]) -> Matrix[N, D]
         loss: Calculate the loss of the data source on the given condition and output.
             [N:int](condition: Matrix[N, C], intermediate: Matrix[N, G]) -> Matrix[One, One]
-        update: Update the data source.
-            () -> None
         load: Encode the data.
             [N:int](data: Matrix[N, int]) -> Matrix[N, D]
+        unload: Decode the data.
+            [N:int](data: Matrix[N, D]) -> Matrix[N, int]
+        update: Update the data source. (default: pass)
+            () -> None
 
     '''
 
     ...
 
-class Sampler[D: int](WithOutputs[D], Updatable, Protocol):
+class Sampler[S: int](WithSampled[S], Updatable, Protocol):
     '''
     Sampler for GANs.
 
     Type parameters:
-        D: The number of inputs of data.
+        S: The number of sample variables.
 
     Abstract properties (must be assigned in subclass):
-        _outputs: D; The number of outputs of data.
+        _sampled: S; The number of sample
 
     Abstract methods (must be implemented in subclass):
         sample: Sample the data.
-            [N:int](batch: N) -> Matrix[N, D]
+            [N:int](batch: N) -> Matrix[N, int]
         restart: Restart the sampler.
             () -> None
     '''
 
-    def sample[N: int](self, batch: N) -> Matrix[N, D]:
+    def sample[N: int](self, batch: N) -> Matrix[N, S]:
         '''
         Sample the data.
 
         Args:
-            batch (int): The batch size.
+            batch (N: int): The batch size.
 
         Returns:
-            Tensor (N, D): Sampled data.
+            Tensor (N, S): Sampled data.
 
         '''
         ...
@@ -424,15 +437,13 @@ class Sampler[D: int](WithOutputs[D], Updatable, Protocol):
         '''Restart the sampler.'''
         ...
     @property
-    def holdout(self) -> Matrix[int, D]:
+    def holdout(self) -> Matrix[int, S]:
         '''The holdout test data.'''
         ...
 
-class Connector[C: int, G: int, D: int](
-    Conditioner[C, D],
-    Inteceptor[C, G, D],
-    Penalizer[C, G],
-    Sampler[D],
+class Connector[S: int, C: int, G: int, D: int](
+    Sampler[S],
+    Transformer[S, C, G, D],
     Protocol
 ):
     '''
@@ -450,16 +461,20 @@ class Connector[C: int, G: int, D: int](
 
     Abstract methods (must be implemented in subclass):
         condition: Condition the data.
-            [N:int](data: Matrix[N, D]) -> Matrix[N, C]
+            [N:int](data: Matrix[N, int]) -> Matrix[N, C]
         prepare: Transform the data based on the condition.
             [N:int](condition: Matrix[N, C], intermediate: Matrix[N, G]) -> Matrix[N, D]
         loss: Calculate the loss of the data source on the given condition and output.
             [N:int](condition: Matrix[N, C], intermediate: Matrix[N, G]) -> Matrix[One, One]
-        update: Update the data source.
-            () -> None
         sample: Sample the data.
-            [N:int](batch: N) -> Matrix[N, D]
+            [N:int](batch: N) -> Matrix[N, int]
+        load: Encode the data.
+            [N:int](data: Matrix[N, int]) -> Matrix[N, D]
+        unload: Decode the data.
+            [N:int](data: Matrix[N, D]) -> Matrix[N, int]
         restart: Restart the sampler.
+            () -> None
+        update: Update the data source. (default: pass)
             () -> None
     '''
 

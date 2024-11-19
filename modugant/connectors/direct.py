@@ -8,15 +8,15 @@ from modugant.penalizers import StaticPenalizer
 from modugant.protocols import Loader, Penalizer, Sampler
 
 
-class DirectConnector[D: int](ComposedConnector[Zero, D, D]):
+class DirectConnector[S: int, D: int](ComposedConnector[S, Zero, D, D]):
     '''Direct connector for GANs.'''
 
     def __init__(
         self,
         dim: D,
-        sampler: Sampler[int],
+        sampler: Sampler[S],
         penalizer: Optional[Penalizer[Zero, D]] = None,
-        loader: Optional[Loader[D]] = None
+        loader: Optional[Loader[S, D]] = None
     ) -> None:
         '''
         Initialize the direct connector.
@@ -29,7 +29,7 @@ class DirectConnector[D: int](ComposedConnector[Zero, D, D]):
 
         '''
         super().__init__(
-            NoneConditioner(dim),
+            NoneConditioner(sampler.sampled),
             DirectInterceptor(Dim.zero(), dim),
             penalizer or StaticPenalizer(Dim.zero(), dim),
             sampler,

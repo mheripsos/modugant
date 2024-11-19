@@ -30,7 +30,7 @@ class EntropyPenalizer[C: int, G: int](Penalizer[C, G]):
         self._conditions = conditions
         self._intermediates = intermediates
         self._index = [
-            (Index.slice(c_start, block), Index.slice(d_start, block))
+            (Index.slice(c_start, block, conditions), Index.slice(d_start, block, intermediates))
             for (c_start, d_start, block) in index
         ]
     @override

@@ -4,16 +4,15 @@ from torch import Tensor
 
 from modugant.matrix import Matrix
 from modugant.matrix.index import Index
-from modugant.matrix.ops import randperm
 from modugant.protocols import Sampler
 
 
-class IteratingSampler[D: int](Sampler[D]):
+class IteratingSampler[S: int](Sampler[S]):
     '''Iterating sampler for GANs.'''
 
     def __init__(
         self,
-        dim: D,
+        dim: S,
         data: Tensor,
         split: float = 0.8
     ) -> None:
@@ -29,20 +28,21 @@ class IteratingSampler[D: int](Sampler[D]):
         assert data.shape[1] == dim, f'Data {data} is not of dimension {dim}'
         self._outputs = dim
         n = data.shape[0]
-        sample = randperm(n)
+        sample = Index.randperm(n)
         cuttoff = int(n * split)
-        self._train = Matrix.load(data[sample[:cuttoff], :], (cuttoff, dim))
-        self._test = Matrix.load(data[sample[cuttoff:], :], (n - cuttoff, dim))
+        self._train = Matrix(data[sample[:cuttoff], :], (cuttoff, dim))
+        self._test = Matrix(data[sample[cuttoff:], :], (n - cuttoff, dim))
         self.__cursor = 0
     @override
-    def sample[N: int](self, batch: N) -> Matrix[N, D]:
-        index = Index.wrap(Index.slice(self.__cursor, batch), len(self._train))
+    def sample[N: int](self, batch: N) -> Matrix[N, S]:
+        index = Index.slice(self.__cursor, batch, self.__cursor + batch)
+        wrapped = index.wrap(self._train.shape[0])
         self.__cursor += batch
-        return self._train[index, ...]
+        return self._train[wrapped, ...]
     @override
     def restart(self) -> None:
         self.__cursor = 0
     @property
     @override
-    def holdout(self) -> Matrix[int, D]:
+    def holdout(self) -> Matrix[int, S]:
         return self._test
