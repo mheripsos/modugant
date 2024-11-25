@@ -1,12 +1,4 @@
-'''Pre-built Loaders.'''
-from .direct import DirectLoader
-from .onehot import OneHotLoader
-from .pooled import PooledLoader
-from .standardize import StandardizeLoader
+from .composed import ComposedLoader
+from .protocol import Loader
 
-__all__ = [
-    'OneHotLoader',
-    'DirectLoader',
-    'PooledLoader',
-    'StandardizeLoader'
-]
+__all__ = ['ComposedLoader', 'Loader']

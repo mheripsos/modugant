@@ -2,7 +2,7 @@ from typing import Any, Iterable, List, Self, Tuple, TypeGuard, cast, overload, 
 
 from torch import ones, randperm
 
-from modugant.matrix.dim import Dim, One
+from modugant.matrix.dim import Dim, One, Zero
 
 
 class Vector[D: int, T](Tuple[T, ...]):
@@ -83,6 +83,10 @@ class Index[D: int, C: int](Vector[D, int]):
     def at[CS: int](index: int, cap: CS) -> 'Index[One, CS]':
         '''Create an index at a single position.'''
         return Index([index], Dim.one(), cap)
+    @staticmethod
+    def empty[CS: int](cap: CS) -> 'Index[Zero, CS]':
+        '''Create an empty index.'''
+        return Index([], Dim.zero(), cap)
     @staticmethod
     def sample[DS: int, CS: int](size: DS, cap: CS, replacement: bool = True) -> 'Index[DS, CS]':
         '''Create a random index.'''
