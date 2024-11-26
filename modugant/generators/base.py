@@ -70,7 +70,7 @@ class BasicGenerator[C: int, L: int, G: int](Module, Generator[C, L, G]):
     def sample[N: int](self, condition: Matrix[N, C]) -> Matrix[N, G]:
         latent = self._latent(condition.shape[0])
         inputs = cat((condition, latent), dim = 1, shape = (condition.shape[0], self._conditions + self._latents))
-        return Matrix(self.forward(inputs), shape = (condition.shape[0], self._intermediates))
+        return Matrix.cast(self.forward(inputs), shape = (condition.shape[0], self._intermediates))
     @override
     def update(self, loss: Matrix[One, One]) -> None:
         self._optimizer.zero_grad()

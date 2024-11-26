@@ -35,44 +35,44 @@ def cat[R: int, C: int](
     shape: Tuple[R, C]
 ) -> Matrix[Any, Any]:
     '''Concatenate matrices.'''
-    return Matrix(t_cat(tensors, dim = dim), shape)
+    return Matrix.cast(t_cat(tensors, dim = dim), shape)
 
 def arange[N: int](end: N) -> Matrix[N, One]:
     '''Create a matrix of range values.'''
-    return Matrix(t_arange(end).reshape(end, 1), (end, Dim.one()))
+    return Matrix.cast(t_arange(end).reshape(end, 1), (end, Dim.one()))
 
 def zeros[R: int, C: int](shape: Tuple[R, C], **kwargs: Any) -> Matrix[R, C]:
     '''Create a matrix of zeros.'''
-    return Matrix(t_zeros(shape, **kwargs), shape)
+    return Matrix.cast(t_zeros(shape, **kwargs), shape)
 
 def ones[R: int, C: int](shape: Tuple[R, C], **kwargs: Any) -> Matrix[R, C]:
     '''Create a matrix of ones.'''
-    return Matrix(t_ones(shape, **kwargs), shape)
+    return Matrix.cast(t_ones(shape, **kwargs), shape)
 
 def eye[D: int](dim: D) -> Matrix[D, D]:
     '''Create an identity matrix.'''
-    return Matrix(t_eye(dim, dim), (dim, dim))
+    return Matrix.cast(t_eye(dim, dim), (dim, dim))
 
 def normal[R: int, C: int](mean: float, std: float, shape: Tuple[R, C], **kwargs: Any) -> Matrix[R, C]:
     '''Create a matrix of normal random values.'''
-    return Matrix(t_normal(mean, std, shape, **kwargs), shape)
+    return Matrix.cast(t_normal(mean, std, shape, **kwargs), shape)
 
 def rand[R: int, C: int](shape: Tuple[R, C], **kwargs: Any) -> Matrix[R, C]:
     '''Create a matrix of random values.'''
-    return Matrix(t_rand(shape, **kwargs), shape)
+    return Matrix.cast(t_rand(shape, **kwargs), shape)
 
 def randn[R: int, C: int](shape: Tuple[R, C], **kwargs: Any) -> Matrix[R, C]:
     '''Create a matrix of normal random values.'''
-    return Matrix(t_randn(shape, **kwargs), shape)
+    return Matrix.cast(t_randn(shape, **kwargs), shape)
 
 def randint[R: int, C: int](low: int, high: int, shape: Tuple[R, C], **kwargs: Any) -> Matrix[R, C]:
     '''Create a matrix of random integers.'''
-    return Matrix(t_randint(low, high, shape, **kwargs), shape)
+    return Matrix.cast(t_randint(low, high, shape, **kwargs), shape)
 
 ## Functional operations
 def one_hot[N: int, C: int](matrix: Matrix[N, One], num_classes: C) -> Matrix[N, C]:
     '''Convert a matrix of one-hot vectors to a matrix of one-hot vectors with a different number of classes.'''
-    return Matrix(t_one_hot(matrix, num_classes)[:, 0], (matrix.shape[0], num_classes))
+    return Matrix.cast(t_one_hot(matrix, num_classes)[:, 0], (matrix.shape[0], num_classes))
 
 @overload
 def cross_entropy[R: int, C: int](
@@ -102,15 +102,15 @@ def cross_entropy[R: int, C: int](
         **kwargs
     ).reshape(targets.shape)
     if reduction == 'none':
-        return Matrix(entropy, targets.shape)
+        return Matrix.cast(entropy, targets.shape)
     else:
-        return Matrix(entropy, (Dim.one(), Dim.one()))
+        return Matrix.cast(entropy, (Dim.one(), Dim.one()))
 
 ## Custom operations
 def sums[R: int, C: int](matrices: Tuple[Matrix[R, C], ...]) -> Matrix[R, C]:
     '''Compute the sum of a matrix.'''
-    return Matrix(stack(matrices).sum(dim = 0), matrices[0].shape)
+    return Matrix.cast(stack(matrices).sum(dim = 0), matrices[0].shape)
 
 def means[R: int, C: int](matrices: Tuple[Matrix[R, C], ...]) -> Matrix[R, C]:
     '''Compute the mean of a matrix.'''
-    return Matrix(stack(matrices).mean(dim = 0), matrices[0].shape)
+    return Matrix.cast(stack(matrices).mean(dim = 0), matrices[0].shape)

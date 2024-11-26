@@ -138,7 +138,7 @@ class SmoothedDiscriminator[C: int, D: int](ExtendedDiscriminator[C, D]):
         norm = cast(Tensor, gradient.norm(dim = 1, keepdim = True))
         # penalize the distance of the norm from 1
         penalty = self._factor * ((norm - 1) ** 2).mean(dim = None, keepdim = True)
-        return Matrix(penalty, (Dim.one(), Dim.one()))
+        return Matrix.cast(penalty, (Dim.one(), Dim.one()))
     @override
     def step[N: int](self, condition: Matrix[N, C], data: Matrix[N, D], target: Matrix[N, One]) -> Matrix[One, One]:
         self._discriminator.zero_grad()

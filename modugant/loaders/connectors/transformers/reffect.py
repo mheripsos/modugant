@@ -47,7 +47,7 @@ class RandomEffectTransformer[U: int, G: int, S: int](Transformer[S]):
     def update(self) -> None:
         '''Update the encoder.'''
         if self._parameter.grad is not None:
-            gradient = Matrix(self._parameter.grad, self._parameter.shape)
+            gradient = Matrix.cast(self._parameter.grad, self._parameter.shape)
             self._parameter = self._parameter - self._lr * gradient
             norm = (self._parameter * self._parameter).sum(dim = 1, keepdim = True).sqrt()
             self._parameter = self._parameter / norm

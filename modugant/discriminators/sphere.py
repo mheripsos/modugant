@@ -97,7 +97,7 @@ class SphereDiscriminator[C: int, D: int](StandardDiscriminator[C, D], Reshaping
         return joined
     @override
     def unshape[N: int](self, data: Tensor, n: N) -> Matrix[N, One]:
-        return Matrix(data, (n, Dim.one()))
+        return Matrix.cast(data, (n, Dim.one()))
     @override
     def loss[N: int](self, condition: Matrix[N, C], data: Matrix[N, D], target: Matrix[N, One]) -> Matrix[One, One]:
         predicted = self.predict(condition, data)

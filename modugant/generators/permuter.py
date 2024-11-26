@@ -36,7 +36,7 @@ class PermutingGenerator[C: int, G: int, F: int](Generator[C, Zero, G]):
         assert sum(folds) == intermediates
         self._conditions = conditions
         self._intermediates = intermediates
-        matrix = Matrix(data, shape = (data.shape[0], data.shape[1]))
+        matrix = Matrix.cast(data, shape = (data.shape[0], data.shape[1]))
         self._splits = matrix[..., index].split(folds, dim = 1)
         self._dim = data.shape[0]
         self._device = data.device

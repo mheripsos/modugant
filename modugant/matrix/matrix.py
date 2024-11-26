@@ -19,8 +19,14 @@ class Matrix[R: int, C: int](Tensor):
     '''Matrix type.'''
 
     @staticmethod
-    def __cast[RS: int, CS: int](data: Tensor, shape: Tuple[RS, CS]) -> 'Matrix[RS, CS]':
+    def cast[RS: int, CS: int](data: Tensor, shape: Tuple[RS, CS]) -> 'Matrix[RS, CS]':
+        '''Insist that the data is a matrix of the given shape.'''
         return cast(Matrix[RS, CS], data)
+    @staticmethod
+    def load[RS: int, CS: int](data: Tensor, shape: Tuple[RS, CS]) -> 'Matrix[RS, CS]':
+        '''Load the data as a matrix of the given shape.'''
+        assert data.shape == shape, f'Data {data} is not of shape {shape}'
+        return Matrix.cast(data, shape)
     @overload
     @staticmethod
     def __reducer(
@@ -62,11 +68,11 @@ class Matrix[R: int, C: int](Tensor):
     ) -> 'Matrix[One, C] | Matrix[R, One] | Matrix[One, One] | Tensor':
         if keepdim:
             if dim is None:
-                return Matrix(data, (Dim.one(), Dim.one()))
+                return Matrix.cast(data, (Dim.one(), Dim.one()))
             elif dim == 0:
-                return Matrix(data, (Dim.one(), shape[1]))
+                return Matrix.cast(data, (Dim.one(), shape[1]))
             else:
-                return Matrix(data, (shape[0], Dim.one()))
+                return Matrix.cast(data, (shape[0], Dim.one()))
         else:
             return data
     @staticmethod
@@ -82,75 +88,51 @@ class Matrix[R: int, C: int](Tensor):
         '''Create a column matrix.'''
         transpose = Vector([Vector([value], Dim.one()) for value in values], values.dim)
         return Matrix(transpose)
-    @overload
-    def __new__(cls, data: Vector[R, Vector[C, float]]) -> 'Matrix[R, C]': ...
-    @overload
-    def __new__(cls, data: Tensor, shape: Tuple[R, C]) -> 'Matrix[R, C]': ...
-    def __new__(
-        cls,
-        data: Union[Vector[R, Vector[C, float]], Tensor],
-        shape: Optional[Tuple[R, C]] = None
-    ) -> 'Matrix[R, C]':
-        '''Create a new matrix.'''
-        if isinstance(data, Tensor):
-            return super().__new__(cls, data.clone().detach())
-        else:
-            return super().__new__(cls, data)
-    @overload
-    def __init__(self, data: Vector[R, Vector[C, float]]) -> None: ...
-    @overload
-    def __init__(self, data: Tensor, shape: Tuple[R, C]) -> None: ...
     def __init__(
             self,
-            data: Union[Vector[R, Vector[C, float]], Tensor],
-            shape: Optional[Tuple[R, C]] = None
+            data: Vector[R, Vector[C, float]]
         ) -> None:
         '''Initialize the matrix.'''
         super().__init__(data)
-        if isinstance(data, Tensor):
-            assert data.shape == shape, f'Data {data} is not of shape {shape}'
-            self._shape = shape
-        else:
-            self._shape = (data.dim, data[0].dim)
     @override
     def __add__(self, other: 'Operand[R, C]') -> 'Matrix[R, C]':
-        return Matrix(super().__add__(other), self.shape)
+        return Matrix.cast(super().__add__(other), self.shape)
     @override
     def __radd__(self, other: 'Operand[R, C]') -> 'Matrix[R, C]':
-        return Matrix(super().__radd__(other), self.shape)
+        return Matrix.cast(super().__radd__(other), self.shape)
     @override
     def __sub__(self, other: 'Operand[R, C]') -> 'Matrix[R, C]':
-        return Matrix(super().__sub__(other), self.shape)
+        return Matrix.cast(super().__sub__(other), self.shape)
     @override
     def __rsub__(self, other: 'Operand[R, C]') -> 'Matrix[R, C]':
-        return Matrix(super().__rsub__(other), self.shape)
+        return Matrix.cast(super().__rsub__(other), self.shape)
     @override
     def __mul__(self, other: 'Operand[R, C]') -> 'Matrix[R, C]':
-        return Matrix(super().__mul__(other), self.shape)
+        return Matrix.cast(super().__mul__(other), self.shape)
     @override
     def __rmul__(self, other: 'Operand[R, C]') -> 'Matrix[R, C]':
-        return Matrix(super().__rmul__(other), self.shape)
+        return Matrix.cast(super().__rmul__(other), self.shape)
     @override
     def __matmul__[X: int](self, other: 'Matrix[C, X]') -> 'Matrix[R, X]':
-        return Matrix(super().__matmul__(other), (self.shape[0], other.shape[1]))
+        return Matrix.cast(super().__matmul__(other), (self.shape[0], other.shape[1]))
     @override
     def __rmatmul__[X: int](self, other: 'Matrix[X, R]') -> 'Matrix[X, C]':
-        return Matrix(super().__rmatmul__(other), (other.shape[0], self.shape[1]))
+        return Matrix.cast(super().__rmatmul__(other), (other.shape[0], self.shape[1]))
     @override
     def __truediv__(self, other: 'Operand[R, C]') -> 'Matrix[R, C]':
-        return Matrix(super().__truediv__(other), self.shape)
+        return Matrix.cast(super().__truediv__(other), self.shape)
     @override
     def __rtruediv__(self, other: 'Operand[R, C]') -> 'Matrix[R, C]':
-        return Matrix(super().__rtruediv__(other), self.shape)
+        return Matrix.cast(super().__rtruediv__(other), self.shape)
     @override
     def __pow__(self, other: 'Operand[R, C]') -> 'Matrix[R, C]':
-        return Matrix(super().__pow__(other), self.shape)
+        return Matrix.cast(super().__pow__(other), self.shape)
     @override
     def __rpow__(self, other: 'Operand[R, C]') -> 'Matrix[R, C]':
-        return Matrix(super().__rpow__(other), self.shape)
+        return Matrix.cast(super().__rpow__(other), self.shape)
     @override
     def __neg__(self) -> 'Matrix[R, C]':
-        return Matrix(super().__neg__(), self.shape)
+        return Matrix.cast(super().__neg__(), self.shape)
     @overload
     def __getitem__(self, indices: Tuple[EllipsisType, EllipsisType]) -> 'Matrix[R, C]': ...
     @overload
@@ -166,7 +148,7 @@ class Matrix[R: int, C: int](Tensor):
     ) -> Tensor: ...
     @override
     def __getitem__(self, *args: Any, **kwargs: Any) -> Tensor:
-        return Matrix.__cast(super().__getitem__(*args, **kwargs), self.shape)
+        return Matrix.cast(super().__getitem__(*args, **kwargs), self.shape)
     @overload
     def argmin(self, dim: Literal[0], keepdim: Literal[True]) -> 'Matrix[One, C]': ...
     @overload
@@ -297,28 +279,28 @@ class Matrix[R: int, C: int](Tensor):
         )
     @override
     def round(self, **kwargs: Any) -> 'Matrix[R, C]':
-        return Matrix(super().round(**kwargs), self.shape)
+        return Matrix.cast(super().round(**kwargs), self.shape)
     @override
     def clamp(self, *args: Any, **kwargs: Any) -> 'Matrix[R, C]':
-        return Matrix(super().clamp(*args, **kwargs), self.shape)
+        return Matrix.cast(super().clamp(*args, **kwargs), self.shape)
     @override
     def log(self) -> 'Matrix[R, C]':
-        return Matrix(super().log(), self.shape)
+        return Matrix.cast(super().log(), self.shape)
     @override
     def exp(self) -> 'Matrix[R, C]':
-        return Matrix(super().exp(), self.shape)
+        return Matrix.cast(super().exp(), self.shape)
     @override
     def square(self) -> 'Matrix[R, C]':
-        return Matrix(super().square(), self.shape)
+        return Matrix.cast(super().square(), self.shape)
     @override
     def sqrt(self) -> 'Matrix[R, C]':
-        return Matrix(super().sqrt(), self.shape)
+        return Matrix.cast(super().sqrt(), self.shape)
     @override
     def sin(self) -> 'Matrix[R, C]':
-        return Matrix(super().sin(), self.shape)
+        return Matrix.cast(super().sin(), self.shape)
     @override
     def cos(self) -> 'Matrix[R, C]':
-        return Matrix(super().cos(), self.shape)
+        return Matrix.cast(super().cos(), self.shape)
     @overload
     def split[D: int](self, split_size: Vector[D, int], dim: Literal[0]) -> Vector[D, 'Matrix[int, C]']: ...
     @overload
@@ -336,7 +318,7 @@ class Matrix[R: int, C: int](Tensor):
             if dim == 0:
                 return Vector(
                     (
-                        Matrix(split, (split.shape[0], self.shape[1]))
+                        Matrix.cast(split, (split.shape[0], self.shape[1]))
                         for split in splits
                     ),
                     split_size.dim # pyright: ignore[reportUnknownArgumentType] should not be a warning
@@ -344,7 +326,7 @@ class Matrix[R: int, C: int](Tensor):
             else:
                 return Vector(
                     (
-                        Matrix(split, (self.shape[0], split.shape[1]))
+                        Matrix.cast(split, (self.shape[0], split.shape[1]))
                         for split in splits
                     ),
                     split_size.dim # pyright: ignore[reportUnknownArgumentType] should not be a warning
@@ -359,42 +341,42 @@ class Matrix[R: int, C: int](Tensor):
     def repeat(self,  repeats: Tuple[int, int]) -> 'Matrix[Any, Any]': ...
     @override
     def repeat(self, repeats: Tuple[int, int]) -> 'Matrix[Any, Any]': # type: ignore[override]
-        return Matrix(super().repeat(repeats), shape = (self.shape[0] * repeats[0], self.shape[1] * repeats[1]))
+        return Matrix.cast(super().repeat(repeats), shape = (self.shape[0] * repeats[0], self.shape[1] * repeats[1]))
     @override
     def multinomial[S: int](self, num_samples: S, *args: Any, **kwargs: Any) -> 'Matrix[R, S]':
-        return Matrix(super().multinomial(*args, **kwargs), (self.shape[0], num_samples))
+        return Matrix.cast(super().multinomial(*args, **kwargs), (self.shape[0], num_samples))
     @override
     def softmax(self, *args: Any, **kwargs: Any) -> 'Matrix[R, C]':
-        return Matrix(super().softmax(*args, **kwargs), self.shape)
+        return Matrix.cast(super().softmax(*args, **kwargs), self.shape)
     @override
     def int(self) -> 'Matrix[R, C]':
-        return Matrix(super().int(), self.shape)
+        return Matrix.cast(super().int(), self.shape)
     @override
     def long(self) -> 'Matrix[R, C]':
-        return Matrix(super().long(), self.shape)
+        return Matrix.cast(super().long(), self.shape)
     @override
     def float(self) -> 'Matrix[R, C]':
-        return Matrix(super().float(), self.shape)
+        return Matrix.cast(super().float(), self.shape)
     @override
     def double(self) -> 'Matrix[R, C]':
-        return Matrix(super().double(), self.shape)
+        return Matrix.cast(super().double(), self.shape)
     @override
     def t(self) -> 'Matrix[C, R]':
-        return Matrix(super().t(), (self.shape[1], self.shape[0]))
+        return Matrix.cast(super().t(), (self.shape[1], self.shape[0]))
     @override
     def detach(self) -> 'Matrix[R, C]':
-        return Matrix(super().detach(), self.shape)
+        return Matrix.cast(super().detach(), self.shape)
     @override
     def clone(self, **kwargs: Any) -> 'Matrix[R, C]':
-        return Matrix(super().clone(**kwargs), self.shape)
+        return Matrix.cast(super().clone(**kwargs), self.shape)
     @override
     def to(self, *args: Any, **kwargs: Any) -> 'Matrix[R, C]':
-        return Matrix(super().to(*args, **kwargs), self.shape)
+        return Matrix.cast(super().to(*args, **kwargs), self.shape)
     @property
     @override
     def T(self) -> 'Matrix[C, R]': # type: ignore
         '''The transpose of the matrix.'''
-        return cast(Matrix[C, R], super().T)
+        return Matrix.cast(super().T, (self.shape[1], self.shape[0]))
     @property
     @override
     def shape(self) -> Tuple[R, C]: # type: ignore

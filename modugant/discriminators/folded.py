@@ -95,7 +95,7 @@ class FoldedDiscriminator[C: int, D: int](StandardDiscriminator[C, D], Reshaping
     @override
     def unshape[N: int](self, data: Tensor, n: N) -> Matrix[N, One]:
         replicated = data.expand(-1, self.__group).reshape(-1, 1)
-        return Matrix(replicated, shape = (n, Dim.one()))
+        return Matrix.cast(replicated, shape = (n, Dim.one()))
     @override
     def loss[N: int](self, condition: Matrix[N, C], data: Matrix[N, D], target: Matrix[N, One]) -> Matrix[One, One]:
         predicted = self.predict(condition, data)
