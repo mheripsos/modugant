@@ -308,6 +308,9 @@ class Matrix[R: int, C: int](Tensor):
     def exp(self) -> 'Matrix[R, C]':
         return Matrix(super().exp(), self.shape)
     @override
+    def square(self) -> 'Matrix[R, C]':
+        return Matrix(super().square(), self.shape)
+    @override
     def sqrt(self) -> 'Matrix[R, C]':
         return Matrix(super().sqrt(), self.shape)
     @override

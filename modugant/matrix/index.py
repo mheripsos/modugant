@@ -1,4 +1,4 @@
-from typing import Any, Iterable, List, Self, Tuple, TypeGuard, cast, overload, override
+from typing import Any, Iterable, List, Self, Sequence, Tuple, TypeGuard, cast, overload, override
 
 from torch import ones, randperm
 
@@ -75,6 +75,20 @@ class Index[D: int, C: int](Vector[D, int]):
     def slice[DS: int, CS: int](offset: int, size: DS, cap: CS) -> 'Index[DS, CS]':
         '''Create a slice of the index.'''
         return Index(range(offset, offset + size), size, cap)
+    @staticmethod
+    def slices[DS: int, CS: int](slices: Sequence[Tuple[int, int]], size: DS, cap: CS) -> 'Index[DS, CS]':
+        '''Create slices of the index.'''
+        assert all(offset + size <= cap for (offset, size) in slices), 'Slice out of bounds.'
+        assert sum(size for (_, size) in slices) == size, 'Slices do not match size.'
+        return Index(
+            [
+                i
+                for (offset, size) in slices
+                for i in range(offset, offset + size)
+            ],
+            size,
+            cap
+        )
     @staticmethod
     def range[DS: int](size: DS) -> 'Index[DS, DS]':
         '''Create a range of indices.'''

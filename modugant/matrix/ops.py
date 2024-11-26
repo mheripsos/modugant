@@ -110,3 +110,7 @@ def cross_entropy[R: int, C: int](
 def sums[R: int, C: int](matrices: Tuple[Matrix[R, C], ...]) -> Matrix[R, C]:
     '''Compute the sum of a matrix.'''
     return Matrix(stack(matrices).sum(dim = 0), matrices[0].shape)
+
+def means[R: int, C: int](matrices: Tuple[Matrix[R, C], ...]) -> Matrix[R, C]:
+    '''Compute the mean of a matrix.'''
+    return Matrix(stack(matrices).mean(dim = 0), matrices[0].shape)
