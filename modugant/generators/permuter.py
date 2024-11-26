@@ -3,11 +3,11 @@ from typing import Self, override
 from torch import Tensor
 
 from modugant.device import Device, check_device
+from modugant.generators.protocol import Generator
 from modugant.matrix import Index, Matrix
 from modugant.matrix.dim import One, Zero
 from modugant.matrix.index import Vector
 from modugant.matrix.ops import cat
-from modugant.protocols import Generator
 
 
 class PermutingGenerator[C: int, G: int, F: int](Generator[C, Zero, G]):

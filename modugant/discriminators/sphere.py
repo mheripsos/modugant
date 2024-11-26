@@ -40,9 +40,6 @@ class SphLinear(Linear):
         super().reset_parameters()
         SphLinear.project(self)
 
-
-## Make this a ReshapedDiscriminator, so that it can be used with our Regularizer
-## Just perform a concatenation in the reshape (identity-like)
 class SphereDiscriminator[C: int, D: int](StandardDiscriminator[C, D], ReshapingDiscriminator[C, D]):
     '''Discriminator model with sphere regularization.'''
 

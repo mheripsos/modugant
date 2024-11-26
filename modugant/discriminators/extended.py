@@ -1,9 +1,9 @@
 from typing import Self, override
 
 from modugant.device import Device
+from modugant.discriminators.protocol import Discriminator
 from modugant.matrix import Matrix
 from modugant.matrix.dim import One
-from modugant.protocols import Discriminator
 
 
 class ExtendedDiscriminator[C: int, D: int](Discriminator[C, D]):

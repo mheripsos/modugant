@@ -7,10 +7,10 @@ from torch.nn import Linear, Module
 from torch.optim import Optimizer
 
 from modugant.device import Device, check_device
+from modugant.generators.protocol import Generator
 from modugant.matrix import Matrix
 from modugant.matrix.dim import One
 from modugant.matrix.ops import cat
-from modugant.protocols import Generator
 
 
 class BasicGenerator[C: int, L: int, G: int](Module, Generator[C, L, G]):

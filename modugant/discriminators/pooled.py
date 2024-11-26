@@ -2,9 +2,9 @@ from typing import Self, Sequence, override
 
 from modugant.device import Device
 from modugant.discriminators.basic import BasicDiscriminator
+from modugant.discriminators.protocol import Discriminator
 from modugant.matrix import Matrix
 from modugant.matrix.dim import One
-from modugant.protocols import Discriminator
 
 
 class PooledDiscriminator[C: int, D: int](Discriminator[C, D]):

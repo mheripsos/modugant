@@ -1,11 +1,11 @@
 from typing import Self, Sequence, override
 
 from modugant.device import Device
+from modugant.generators.protocol import Generator
 from modugant.matrix import Matrix
 from modugant.matrix.dim import One
 from modugant.matrix.index import Index
 from modugant.matrix.ops import cat
-from modugant.protocols import Generator
 
 
 class PooledGenerator[C: int, L: int, G: int](Generator[C, L, G]):
@@ -48,7 +48,7 @@ class PooledGenerator[C: int, L: int, G: int](Generator[C, L, G]):
         ## Use randperm to sample splits along the first dimension of the condtion
         ## Then sample from the main generator and the pool generators in those splits
         k = min(len(self._pool), condition.shape[0])
-        splits = Index.partition(condition.shape[0], k + 1)
+        splits = Index.partition(k + 1, condition.shape[0])
         main = self._main.sample(condition[splits[0], ...])
         pool = cat(
             tuple(

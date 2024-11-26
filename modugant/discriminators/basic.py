@@ -5,9 +5,9 @@ from torch.nn import Linear, Module
 from torch.optim import Optimizer
 
 from modugant.device import Device
+from modugant.discriminators.protocol import Discriminator
 from modugant.matrix import Matrix
 from modugant.matrix.dim import Dim, One
-from modugant.protocols import Discriminator
 
 
 class BasicDiscriminator[C: int, D: int](Module, Discriminator[C, D]):
