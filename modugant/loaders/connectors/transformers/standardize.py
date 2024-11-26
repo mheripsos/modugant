@@ -23,6 +23,7 @@ class StandardizeTransformer[S: int](Transformer[S]):
         '''
         self._index = index
         subset = data[..., index]
+        self._samples = index.dim
         self._mean = subset.mean(dim = 0, keepdim = True)
         self._std = subset.std(dim = 0, keepdim = True)
     @override
