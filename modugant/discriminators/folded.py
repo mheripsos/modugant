@@ -24,13 +24,16 @@ Attributes:
 from typing import Tuple, override
 
 from torch import Tensor, cat
-from torch.nn import Dropout, LeakyReLU, Linear, Sequential
 from torch.optim.adam import Adam
 
 from modugant.discriminators.penalized import ReshapingDiscriminator
 from modugant.discriminators.standard import StandardDiscriminator
+from modugant.layers.isometric.dropout import DropoutLayer
+from modugant.layers.isometric.relu import RectifiedLayer
+from modugant.layers.linear.linear import LinearLayer
 from modugant.matrix import Matrix
 from modugant.matrix.dim import Dim, One
+from modugant.matrix.index import Index
 
 
 class FoldedDiscriminator[C: int, D: int](StandardDiscriminator[C, D], ReshapingDiscriminator[C, D]):
@@ -67,15 +70,12 @@ class FoldedDiscriminator[C: int, D: int](StandardDiscriminator[C, D], Reshaping
             conditions,
             outputs,
             steps,
-            layer = lambda ins, outs, layer: Sequential(
-                Linear(
-                    ins if layer else group * (outputs + conditions),
-                    outs
-                ),
-                LeakyReLU(slope),
-                Dropout(dropout)
+            layer = lambda ins, outs, layer : LinearLayer(
+                outs,
+                Index.range(ins),
+                [RectifiedLayer(outs), DropoutLayer(outs, dropout)]
             ),
-            finish = lambda ins: Linear(ins, 1)
+            finish = lambda ins: LinearLayer(Dim.one(), Index.range(ins))
         )
         self.__group = group
         self.__lr = lr

@@ -7,36 +7,18 @@ Classes:
 '''
 from typing import override
 
-from torch import Tensor, cat
-from torch.nn import BatchNorm1d, Linear, Module, ReLU, Sequential
+from torch.nn import Sequential
 from torch.optim.adam import Adam
 
 from modugant.generators.base import BasicGenerator
+from modugant.layers.isometric.norm import BatchNormLayer
+from modugant.layers.isometric.relu import RectifiedLayer
+from modugant.layers.linear.linear import LinearLayer
+from modugant.layers.residual import ResidualLayer
 from modugant.matrix import Matrix
+from modugant.matrix.index import Index
 from modugant.matrix.ops import normal
 
-
-class ResidualLayer(Module):
-    '''Residual layer for a generator.'''
-
-    def __init__(self, inputs: int, outputs: int) -> None:
-        '''
-        Initialize the residual layer.
-
-        Args:
-            inputs (int): The number of input nodes.
-            outputs (int): The number of output nodes.
-
-        '''
-        super(ResidualLayer, self).__init__()
-        self.__model = Sequential(
-            Linear(inputs, outputs),
-            BatchNorm1d(outputs),
-            ReLU()
-        )
-    @override
-    def forward(self, data: Tensor) -> Tensor:
-        return cat([self.__model(data), data], dim = 1)
 
 class ResidualGenerator[C: int, L: int, G: int](BasicGenerator[C, L, G]):
     '''Generator model for GANs.'''
@@ -68,17 +50,23 @@ class ResidualGenerator[C: int, L: int, G: int](BasicGenerator[C, L, G]):
             intermediates
         )
         self._steps = steps
+        cumul = [conditions + latents + sum(steps[:i]) for i in range(len(steps))]
         self._learning = learning
         self._decay = decay
         self._model = Sequential(
             *[
                 ResidualLayer(
-                    sum(steps[:i]) + latents + conditions,
-                    steps[i]
+                    cumul[i],
+                    Index.range(cumul[i]),
+                    LinearLayer(
+                        steps[i],
+                        Index.range(cumul[i]),
+                        [BatchNormLayer(steps[i]), RectifiedLayer(steps[i])]
+                    )
                 )
                 for i in range(len(steps))
             ],
-            Linear(sum(steps) + latents + conditions, intermediates)
+            LinearLayer(intermediates, Index.range(sum(steps) + conditions + latents))
         )
         self._optimizer = Adam(
             self.parameters(),

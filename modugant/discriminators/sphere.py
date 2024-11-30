@@ -1,44 +1,18 @@
-from typing import Tuple, cast, override
+from typing import Tuple, override
 
-from torch import Tensor, no_grad
-from torch.nn import Dropout, Linear, ReLU, Sequential
+from torch import Tensor
 from torch.optim.adam import Adam
 
 from modugant.discriminators.penalized import ReshapingDiscriminator
 from modugant.discriminators.standard import StandardDiscriminator
+from modugant.layers.isometric.dropout import DropoutLayer
+from modugant.layers.isometric.relu import RectifiedLayer
+from modugant.layers.linear.sphere import SphericalLayer
 from modugant.matrix import Matrix
 from modugant.matrix.dim import Dim, One
+from modugant.matrix.index import Index
 from modugant.matrix.ops import cat
 
-
-class SphLinear(Linear):
-    '''Linear layer with weights on the unit sphere.'''
-
-    @staticmethod
-    def project(network: Linear) -> None:
-        '''Project the weights of the network onto the unit sphere.'''
-        with no_grad():
-            norm = cast(Tensor, network.weight.norm(2, dim = 1, keepdim = True))
-            _ = network.weight.div_(norm)
-    def __init__(self, inputs: int, outputs: int):
-        '''
-        Initialize the linear layer with weights on the unit sphere.
-
-        Args:
-            inputs (int): The number of input nodes.
-            outputs (int): The number of output nodes.
-
-        '''
-        super().__init__(inputs, outputs)
-        SphLinear.project(self)
-    def reproject(self) -> None:
-        '''Project the weights of the layer onto the unit sphere.'''
-        SphLinear.project(self)
-    @override
-    def reset_parameters(self) -> None:
-        '''Re-initialize the weights of the layer.'''
-        super().reset_parameters()
-        SphLinear.project(self)
 
 class SphereDiscriminator[C: int, D: int](StandardDiscriminator[C, D], ReshapingDiscriminator[C, D]):
     '''Discriminator model with sphere regularization.'''
@@ -70,12 +44,12 @@ class SphereDiscriminator[C: int, D: int](StandardDiscriminator[C, D], Reshaping
             conditions,
             outputs,
             steps,
-            layer = lambda ins, outs, _: Sequential(
-                SphLinear(ins, outs),
-                ReLU(),
-                Dropout(dropout)
+            layer = lambda ins, outs, _: SphericalLayer(
+                outs,
+                Index.range(ins),
+                [RectifiedLayer(outs), DropoutLayer(outs, dropout)]
             ),
-            finish = lambda ins: Sequential(SphLinear(ins, 1))
+            finish = lambda ins: SphericalLayer(Dim.one(), Index.range(ins))
         )
         self.__lr = lr
         self.__decay = decay
@@ -102,14 +76,6 @@ class SphereDiscriminator[C: int, D: int](StandardDiscriminator[C, D], Reshaping
     def loss[N: int](self, condition: Matrix[N, C], data: Matrix[N, D], target: Matrix[N, One]) -> Matrix[One, One]:
         predicted = self.predict(condition, data)
         loss = - (target.t() @ predicted.log() + (1 - target.t()) @ (1 - predicted).log()) / len(target)
-        return loss
-    @override
-    def step[N: int](self, condition: Matrix[N, C], data: Matrix[N, D], target: Matrix[N, One]) -> Matrix[One, One]:
-        loss = super().step(condition, data, target)
-        # project all linear weight vectors back onto unit sphere after updates
-        for module in self.modules():
-            if isinstance(module, SphLinear):
-                module.reproject()
         return loss
     @override
     def restart(self) -> None:

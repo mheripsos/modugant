@@ -8,13 +8,17 @@ Classes:
 
 from typing import override
 
-from torch.nn import Linear, ReLU, Sequential, Sigmoid
+from torch.nn import Sequential
 from torch.optim.adam import Adam
 from torch.optim.lr_scheduler import StepLR
 
 from modugant.generators.base import BasicGenerator
+from modugant.layers.isometric.relu import RectifiedLayer
+from modugant.layers.isometric.sigmoid import SigmoidLayer
+from modugant.layers.linear.linear import LinearLayer
 from modugant.matrix import Matrix
 from modugant.matrix.dim import One
+from modugant.matrix.index import Index
 from modugant.matrix.ops import randn
 
 
@@ -54,18 +58,18 @@ class SequentialGenerator[C: int, L: int, G: int](BasicGenerator[C, L, G]):
         self._gamma = gamma
         self._step = step
         self._model = Sequential(
-            *[Sequential(
-                Linear(
-                    steps[i - 1] if i else (conditions + latents),
-                    steps[i]
-                ),
-                ReLU()
-            ) for i in range(len(steps))],
-            Linear(
-                steps[-1] if len(steps) else (conditions + latents),
-                intermediates
-            ),
-            Sigmoid()
+            *[
+                LinearLayer(
+                    steps[i],
+                    Index.range(steps[i - 1] if i else (conditions + latents)),
+                    [RectifiedLayer(steps[i])]
+                ) for i in range(len(steps))
+            ],
+            LinearLayer(
+                intermediates,
+                Index.range(steps[-1] if len(steps) else (conditions + latents)),
+                [SigmoidLayer(intermediates)]
+            )
         )
         self._optimizer = Adam(self.parameters(), lr = learning)
         self.__scheduler = StepLR(self._optimizer, step_size = step, gamma = gamma)
